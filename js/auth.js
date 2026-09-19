@@ -23,9 +23,9 @@
    刷新過的 Token 重試一次」的機制，避免未來遇到單純的 Token 過期時還要使用者手動
    登出再登入。 ---------- */
 const ADMIN_EMAIL = 'felix670131@gmail.com';
-// v3.3.68 測試模式：暫時關閉前端 Google 登入門檻，方便直接測試履歷、AI 與後台備份流程。
-// 測試完成後只需改成 false，即可恢復原本的 Google 登入牆；後端管理 API 仍維持身份驗證，不會因測試模式而公開。
-const DISABLE_GOOGLE_LOGIN_FOR_TEST = true;
+// v3.3.70：完成 PDF／後台備份測試後恢復正式 Google 登入門檻。
+// 後端管理 API 仍維持 Netlify Identity 身份驗證。
+const DISABLE_GOOGLE_LOGIN_FOR_TEST = false;
 window.__zhitouCurrentUser = null;
 
 async function getIdentityToken(forceRefresh){
@@ -154,9 +154,8 @@ async function uploadResumeToServer(file){
     try { sessionStorage.setItem('zhitou_login_recorded', '1'); } catch (e){}
   }
 
-  // v3.3.68：測試期間完全跳過前端 Google Identity 初始化與登入牆。
-  // 不刪除 Netlify Identity SDK，也不修改後端 admin-data / admin-resume-file 的權限檢查，
-  // 因此之後恢復登入只需將上面的旗標改回 false，不必重新接回整套流程。
+  // v3.3.70：測試完成後正式恢復 Google Identity 初始化與登入牆。
+  // 後端 admin-data / admin-resume-file 的權限檢查維持不變。
   if (DISABLE_GOOGLE_LOGIN_FOR_TEST) {
     showApp(null);
     if (gate) gate.style.display = 'none';

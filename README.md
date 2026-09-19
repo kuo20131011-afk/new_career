@@ -1,3 +1,11 @@
+# JobSight v3.3.70
+
+本版本已完成 PDF 履歷上傳與後台備份測試，正式恢復 Google 帳號登入門檻。
+
+- 前端：恢復 Netlify Identity Google 登入牆
+- 後台 API：維持身份驗證
+- PDF：沿用 v3.3.69 已驗證的原始二進位上傳流程
+
 # 職透 (JobSight) V3.3.67 — 多供應商 API Key 與可更新模型設定
 
 ## v3.3.67 更新重點
