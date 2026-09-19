@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>職透 JobSight V3.3.71</title>
+<title>職透 JobSight V3.3.72A</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -938,6 +938,40 @@ header .eyebrow{color:var(--ws-blue);margin-bottom:5px;font-size:10px;}
 }
 
 </style>
+
+<style id="sidebarWorkflowDesign">
+/* v3.3.72A — 逐步側邊欄：避免重複資訊，將操作變成單一路徑 */
+:root{--sb-navy:#12233F;--sb-blue:#2563EB;--sb-soft:#EEF4FF;--sb-border:#E5EAF2;--sb-text:#172033;--sb-muted:#667085;--sb-bg:#F6F8FB;}
+body{background:var(--sb-bg);padding:0 24px 80px;}
+.wrap{max-width:1240px;margin-left:285px;margin-right:auto;}
+#workspaceHome{display:none!important;}
+.workspace-module-grid{display:none!important;}
+header{margin-bottom:18px;}
+.workspace-intake{margin-top:0;}
+.workspace-nav{position:fixed;left:18px;top:18px;bottom:18px;width:245px;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--sb-border);border-radius:20px;padding:18px 14px;box-shadow:0 12px 36px rgba(20,33,61,.08);z-index:100;box-sizing:border-box;overflow:auto;}
+.sidebar-brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--sb-border);margin-bottom:8px;}
+.sidebar-brand-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#2563EB,#4F8CFF);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:0 6px 16px rgba(37,99,235,.22);}
+.sidebar-brand b{display:block;font-size:16px;color:var(--sb-navy);letter-spacing:-.02em;}
+.sidebar-brand small{display:block;font-size:10px;color:var(--sb-muted);margin-top:2px;}
+.sidebar-heading{font-size:10px;font-weight:800;color:#98A2B3;letter-spacing:.12em;padding:8px 10px 6px;}
+.workspace-nav-item{position:relative;display:flex;align-items:center;gap:11px;text-align:left;border:0;background:transparent;border-radius:12px;padding:11px 10px;color:var(--sb-muted);cursor:pointer;font-family:'Noto Sans TC',sans-serif;width:100%;}
+.workspace-nav-item:hover{background:#F7F9FC;color:var(--sb-text);}
+.workspace-nav-item.active{background:var(--sb-soft);color:var(--sb-blue);}
+.workspace-nav-item:not(:last-of-type)::after{content:'';position:absolute;left:25px;top:42px;height:9px;border-left:1px dashed #D5DCE8;pointer-events:none;}
+.workspace-nav-icon{width:30px;height:30px;border-radius:9px;background:#F1F4F8;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;flex:none;color:#7A8496;}
+.workspace-nav-item.active .workspace-nav-icon{background:#fff;color:var(--sb-blue);box-shadow:0 2px 8px rgba(37,99,235,.12);}
+.workspace-nav-item b{display:block;font-size:13px;line-height:1.3;}
+.workspace-nav-item small{display:block;font-size:10px;color:var(--sb-muted);margin-top:2px;white-space:nowrap;}
+.sidebar-progress{margin-top:auto;background:#F8FAFD;border:1px solid var(--sb-border);border-radius:13px;padding:12px;}
+.sidebar-progress-top{display:flex;justify-content:space-between;font-size:10px;color:var(--sb-muted);margin-bottom:8px;}
+.sidebar-progress-top b{color:var(--sb-blue);}
+.sidebar-progress-bar{height:6px;background:#E9EEF5;border-radius:99px;overflow:hidden;}
+.sidebar-progress-bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:99px;transition:width .25s ease;}
+.sidebar-progress p{font-size:10px;color:#667085;line-height:1.5;margin:8px 0 0;}
+.tab-panel{scroll-margin-top:20px;}
+@media(max-width:900px){body{padding:0 14px 60px;}.wrap{margin-left:0;max-width:none;}.workspace-nav{position:sticky;top:8px;left:auto;bottom:auto;width:100%;height:auto;max-height:none;display:grid;grid-template-columns:repeat(3,1fr);padding:10px;margin-bottom:14px;overflow:visible;}.sidebar-brand,.sidebar-heading,.sidebar-progress{display:none;}.workspace-nav-item{padding:9px;}.workspace-nav-item:not(:last-of-type)::after{display:none;}.workspace-nav-item small{display:none;}}
+@media(max-width:600px){.workspace-nav{grid-template-columns:repeat(2,1fr);}.workspace-nav-icon{width:28px;height:28px;}}
+</style>
 <style id="dynPageSizeStyle"></style>
 </head>
 <body>
@@ -986,7 +1020,7 @@ header .eyebrow{color:var(--ws-blue);margin-bottom:5px;font-size:10px;}
         <button class="header-api-link" id="apiSettingsBtn" type="button" onclick="openApiModal()">🔑 API Key 設定</button>
         <span class="api-status-pill" id="apiStatusPill">尚未設定（使用系統內建連線）</span>
       </div>
-      <p class="tagline">看穿一份履歷，也看穿一個職缺。上傳一次，完成媒合、健診、模擬面試、進度追蹤、客製履歷與提案簡報。</p>
+      <p class="tagline">依照步驟完成履歷、職缺、健診、面試與求職文件。</p>
       <a href="#mainTabs" class="skip-to-tabs-link">先看看有哪些功能 ↓</a>
     </div>
   </header>
@@ -1011,22 +1045,32 @@ header .eyebrow{color:var(--ws-blue);margin-bottom:5px;font-size:10px;}
     </div>
   </section>
 
-  <nav class="workspace-nav" id="workspaceNav" aria-label="主要功能導覽">
-    <button type="button" class="workspace-nav-item active" data-workspace-home="true">
-      <span class="workspace-nav-icon">⌂</span><span><b>總覽</b><small>求職工作台</small></span>
+  <nav class="workspace-nav" id="workspaceNav" aria-label="求職步驟導覽">
+    <div class="sidebar-brand"><span class="sidebar-brand-mark">J</span><div><b>JobSight</b><small>個人求職工作台</small></div></div>
+    <div class="sidebar-heading">求職流程</div>
+    <button type="button" class="workspace-nav-item active" data-scroll-target="resumeWorkspace" data-sidebar-step="1">
+      <span class="workspace-nav-icon">01</span><span><b>準備履歷</b><small>上傳一次，全部工具共用</small></span>
     </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t2">
-      <span class="workspace-nav-icon">▤</span><span><b>履歷中心</b><small>健診・客製履歷</small></span>
+    <button type="button" class="workspace-nav-item" data-workspace-target="t1" data-sidebar-step="2">
+      <span class="workspace-nav-icon">02</span><span><b>找目標職缺</b><small>分析適配程度</small></span>
     </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t1">
-      <span class="workspace-nav-icon">◎</span><span><b>職缺媒合</b><small>匹配・推薦信</small></span>
+    <button type="button" class="workspace-nav-item" data-workspace-target="t2" data-sidebar-step="3">
+      <span class="workspace-nav-icon">03</span><span><b>檢查履歷</b><small>找出可改善的地方</small></span>
     </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t4">
-      <span class="workspace-nav-icon">◉</span><span><b>面試準備</b><small>模擬・反問題庫</small></span>
+    <button type="button" class="workspace-nav-item" data-workspace-target="t4" data-sidebar-step="4">
+      <span class="workspace-nav-icon">04</span><span><b>練習面試</b><small>題目與回答準備</small></span>
     </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t7">
-      <span class="workspace-nav-icon">▥</span><span><b>求職文件</b><small>提案簡報・輸出</small></span>
+    <button type="button" class="workspace-nav-item" data-workspace-target="t6" data-sidebar-step="5">
+      <span class="workspace-nav-icon">05</span><span><b>客製履歷</b><small>針對職缺重新編排</small></span>
     </button>
+    <button type="button" class="workspace-nav-item" data-workspace-target="t7" data-sidebar-step="6">
+      <span class="workspace-nav-icon">06</span><span><b>面試提案</b><small>製作面試簡報</small></span>
+    </button>
+    <div class="sidebar-progress" id="sidebarProgress">
+      <div class="sidebar-progress-top"><span>目前進度</span><b id="sidebarProgressValue">0%</b></div>
+      <div class="sidebar-progress-bar"><i id="sidebarProgressBar"></i></div>
+      <p id="sidebarProgressHint">先完成履歷上傳</p>
+    </div>
   </nav>
 
   <section class="workspace-module-grid" aria-label="快速功能">
