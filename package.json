@@ -1,0 +1,9 @@
+{
+  "name": "zhitou-jobsight-backend",
+  "private": true,
+  "version": "3.3.69",
+  "dependencies": {
+    "@netlify/blobs": "^10.0.0",
+    "@netlify/identity": "^1.2.0"
+  }
+}
