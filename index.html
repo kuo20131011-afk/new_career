@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>職透 JobSight V3.3.79</title>
+<title>職透 JobSight V3.3.87</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -646,7 +646,7 @@
   }
 
   /* tabs：v3.3.7 改為「動線導引」水平步驟列，六個工具＝一段真實的使用流程 */
-  .tabs{ display:none !important; align-items:flex-start; gap:2px; margin:var(--space-4) 0; border-bottom:none; flex-wrap:wrap; row-gap:var(--space-3); }
+  .tabs{ display:flex; align-items:flex-start; gap:2px; margin:var(--space-4) 0; border-bottom:none; flex-wrap:wrap; row-gap:var(--space-3); }
   .tab-btn{
     flex:1; min-width:80px; display:flex; flex-direction:column; align-items:center; gap:8px;
     background:none; border:none; padding:4px 2px 0; cursor:pointer; position:relative;
@@ -849,217 +849,7 @@
 </style>
 <!-- v3.3.4：@page 無法用 body class 選取，改用 JS 在列印前動態寫入這個 style 標籤的內容，
      讓「客製履歷」用直向 A4、「提案簡報」維持橫向，兩種模式各自套用正確的紙張方向。 -->
-<style id="workspaceDesignSystem">
-/* v3.3.71 — 個人求職工作台視覺系統 */
-:root{
-  --ws-navy:#14213D;
-  --ws-blue:#2563EB;
-  --ws-blue-soft:#EEF4FF;
-  --ws-green:#0F9F78;
-  --ws-border:#E6EAF0;
-  --ws-bg:#F5F7FA;
-  --ws-text:#162033;
-  --ws-muted:#667085;
-}
-body{background:var(--ws-bg);padding:0 20px 80px;}
-.wrap{max-width:1240px;}
-header{background:#fff;border:1px solid var(--ws-border);border-top:none;border-radius:0 0 18px 18px;padding:18px 24px;margin-bottom:22px;box-shadow:0 6px 24px rgba(20,33,61,.05);}
-header h1{font-size:30px;letter-spacing:-.02em;color:var(--ws-navy);}
-header .eyebrow{color:var(--ws-blue);margin-bottom:5px;font-size:10px;}
-.version-badge{border-color:#C9D8F8;color:var(--ws-blue);background:#F7FAFF;}
-.tagline{max-width:520px;font-size:13px;}
-.header-api-row{gap:6px;}
-.header-api-link{border-color:var(--ws-border);background:#fff;}
-.workspace-hero{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;background:linear-gradient(135deg,#14213D 0%,#1D3764 58%,#2563EB 100%);border-radius:22px;padding:34px 36px;color:#fff;box-shadow:0 18px 45px rgba(20,33,61,.18);position:relative;overflow:hidden;}
-.workspace-hero:after{content:'';position:absolute;width:320px;height:320px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-90px;top:-120px;box-shadow:0 0 0 35px rgba(255,255,255,.025),0 0 0 70px rgba(255,255,255,.02);}
-.workspace-hero-main{position:relative;z-index:1;}
-.workspace-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;color:#BFD2FF;margin-bottom:12px;}
-.workspace-hero h2{font-size:32px;margin:0 0 10px;letter-spacing:-.03em;}
-.workspace-hero p{max-width:680px;color:#DCE7FF;line-height:1.8;margin:0;font-size:14px;}
-.workspace-hero-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;}
-.workspace-primary,.workspace-secondary{border-radius:10px;padding:11px 16px;font-family:'Noto Sans TC',sans-serif;font-weight:700;cursor:pointer;}
-.workspace-primary{background:#fff;color:var(--ws-navy);border:1px solid #fff;}
-.workspace-primary span{margin-left:10px;}
-.workspace-secondary{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.3);}
-.workspace-progress-card{position:relative;z-index:1;align-self:center;display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:20px;backdrop-filter:blur(10px);}
-.workspace-progress-ring{--progress:0deg;width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(#7DD3FC var(--progress),rgba(255,255,255,.15) 0);position:relative;flex:none;}
-.workspace-progress-ring:after{content:'';position:absolute;inset:8px;background:#1A3560;border-radius:50%;}
-.workspace-progress-ring span{position:relative;z-index:1;font-weight:800;font-size:18px;}
-.workspace-progress-label{font-size:11px;color:#BFD2FF;margin-bottom:5px;}
-.workspace-progress-title{font-size:16px;font-weight:800;margin-bottom:5px;}
-.workspace-progress-hint{font-size:12px;line-height:1.55;color:#DCE7FF;}
-.workspace-nav{display:grid;grid-template-columns:1.05fr repeat(4,1fr);background:#fff;border:1px solid var(--ws-border);border-radius:16px;padding:7px;margin:16px 0;box-shadow:0 8px 28px rgba(20,33,61,.05);position:sticky;top:8px;z-index:20;}
-.workspace-nav-item{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:transparent;border-radius:11px;padding:12px 14px;color:var(--ws-muted);cursor:pointer;font-family:'Noto Sans TC',sans-serif;}
-.workspace-nav-item:hover{background:#F7F9FC;color:var(--ws-navy);}
-.workspace-nav-item.active{background:var(--ws-blue-soft);color:var(--ws-blue);}
-.workspace-nav-icon{width:30px;height:30px;border-radius:9px;background:#F1F4F8;display:grid;place-items:center;font-weight:800;flex:none;}
-.workspace-nav-item.active .workspace-nav-icon{background:#fff;color:var(--ws-blue);box-shadow:0 2px 7px rgba(37,99,235,.12);}
-.workspace-nav-item b{display:block;font-size:13px;line-height:1.3;}
-.workspace-nav-item small{display:block;font-size:10px;color:var(--ws-muted);margin-top:2px;white-space:nowrap;}
-.workspace-module-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
-.workspace-module-card{min-height:126px;border:1px solid var(--ws-border);background:#fff;border-radius:15px;padding:18px;text-align:left;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:start;cursor:pointer;font-family:'Noto Sans TC',sans-serif;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;}
-.workspace-module-card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(20,33,61,.08);border-color:#C8D6F5;}
-.module-icon{width:34px;height:34px;border-radius:10px;background:var(--ws-blue-soft);color:var(--ws-blue);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;}
-.workspace-module-card.jobs .module-icon{background:#EFFAF6;color:var(--ws-green);}
-.workspace-module-card.interview .module-icon{background:#FFF7EC;color:#B86B13;}
-.workspace-module-card.documents .module-icon{background:#F5F1FF;color:#6D45D8;}
-.module-copy b{display:block;font-size:14px;color:var(--ws-text);margin-bottom:6px;}
-.module-copy small{display:block;color:var(--ws-muted);font-size:11.5px;line-height:1.65;}
-.module-arrow{font-size:18px;color:#A0A8B6;}
-.workspace-intake{border:1px solid var(--ws-border);border-radius:18px;background:#fff;box-shadow:0 8px 28px rgba(20,33,61,.05);padding:24px;}
-.workspace-intake .upload-row{gap:24px;}
-.workspace-intake .field-label{color:#344054;font-weight:700;}
-.workspace-intake .dropzone{border:1.5px dashed #B9C7DD;background:#F8FAFD;border-radius:14px;min-height:165px;}
-.workspace-intake .dropzone:hover{border-color:var(--ws-blue);background:#F5F8FF;}
-.workspace-intake textarea{background:#FBFCFE;border-color:var(--ws-border);min-height:320px;}
-.workspace-intake select{background:#FBFCFE;}
-.workspace-intake .cta-row{padding-top:2px;}
-.legacy-tabs{display:none !important;}
-.tab-panel{scroll-margin-top:90px;}
-.tab-panel.active{animation:wsFade .18s ease-out;}
-@keyframes wsFade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
-@media(max-width:900px){
-  .workspace-hero{grid-template-columns:1fr;}
-  .workspace-progress-card{max-width:520px;}
-  .workspace-nav{grid-template-columns:repeat(3,1fr);position:static;}
-  .workspace-module-grid{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:640px){
-  body{padding:0 10px 50px;}
-  header{padding:16px;margin-bottom:14px;}
-  .workspace-hero{padding:24px 20px;border-radius:18px;}
-  .workspace-hero h2{font-size:25px;}
-  .workspace-progress-card{padding:15px;}
-  .workspace-progress-ring{width:76px;height:76px;}
-  .workspace-nav{grid-template-columns:repeat(2,1fr);gap:5px;}
-  .workspace-nav-item{padding:10px;}
-  .workspace-module-grid{grid-template-columns:1fr;}
-  .workspace-intake{padding:16px;}
-}
-
-</style>
-
-<style id="v3_3_74_single_focus">
-/* v3.3.74：單一路徑 UI。左側是唯一流程導航，主區只呈現目前步驟。 */
-.workspace-current-guide{margin:14px 0 16px;padding:18px 20px;border:1px solid #DCE5F0;border-radius:16px;background:linear-gradient(135deg,#F8FBFF,#FFFFFF);display:flex;align-items:center;gap:16px;box-shadow:0 4px 18px rgba(31,65,114,.05)}
-.current-guide-mark{width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:#2563EB;color:#fff;display:grid;place-items:center;font-weight:900;font-size:14px;box-shadow:0 7px 16px rgba(37,99,235,.18)}
-.current-guide-copy{min-width:0}.current-guide-kicker{font-size:11px;font-weight:800;color:#2563EB;letter-spacing:.08em;margin-bottom:3px}.current-guide-copy strong{display:block;font-size:18px;color:#172B4D;letter-spacing:-.02em}.current-guide-copy p{margin:4px 0 0;color:#667085;font-size:12.5px;line-height:1.6}.current-guide-next{margin-left:auto;white-space:nowrap;padding:8px 11px;border:1px solid #DCE5F0;border-radius:999px;color:#52637A;background:#fff;font-size:11px;font-weight:700}
-.workspace-intake{border-radius:16px;border:1px solid #DCE5F0;box-shadow:0 5px 20px rgba(31,65,114,.05)}
-.workspace-intake .field-label{font-weight:800;color:#344054}.workspace-intake .dropzone{border:1.5px dashed #B9C9DE;background:#FBFDFF;border-radius:14px}.workspace-intake .dropzone:hover{border-color:#2563EB;background:#F5F9FF}
-.legacy-tabs{display:none !important}
-@media(max-width:900px){.workspace-current-guide{align-items:flex-start}.current-guide-next{display:none}}
-</style>
-<style id="sidebarWorkflowDesign">
-/* v3.3.73 — 單一路徑側邊欄：避免重複資訊，將操作變成單一路徑 */
-:root{--sb-navy:#12233F;--sb-blue:#2563EB;--sb-soft:#EEF4FF;--sb-border:#E5EAF2;--sb-text:#172033;--sb-muted:#667085;--sb-bg:#F6F8FB;}
-body{background:var(--sb-bg);padding:0 24px 80px;}
-.wrap{max-width:1240px;margin-left:285px;margin-right:auto;}
-#workspaceHome{display:none!important;}
-.workspace-module-grid{display:none!important;}
-header{margin-bottom:18px;}
-.workspace-intake{margin-top:0;}
-.workspace-nav{position:fixed;left:18px;top:18px;bottom:18px;width:245px;display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid var(--sb-border);border-radius:20px;padding:18px 14px;box-shadow:0 12px 36px rgba(20,33,61,.08);z-index:100;box-sizing:border-box;overflow:auto;}
-.sidebar-brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid var(--sb-border);margin-bottom:8px;}
-.sidebar-brand-mark{width:36px;height:36px;border-radius:11px;background:linear-gradient(135deg,#2563EB,#4F8CFF);color:#fff;display:grid;place-items:center;font-weight:900;font-size:18px;box-shadow:0 6px 16px rgba(37,99,235,.22);}
-.sidebar-brand b{display:block;font-size:16px;color:var(--sb-navy);letter-spacing:-.02em;}
-.sidebar-brand small{display:block;font-size:10px;color:var(--sb-muted);margin-top:2px;}
-.sidebar-heading{font-size:10px;font-weight:800;color:#98A2B3;letter-spacing:.12em;padding:8px 10px 6px;}
-.workspace-nav-item{position:relative;display:flex;align-items:center;gap:11px;text-align:left;border:0;background:transparent;border-radius:12px;padding:11px 10px;color:var(--sb-muted);cursor:pointer;font-family:'Noto Sans TC',sans-serif;width:100%;}
-.workspace-nav-item:hover{background:#F7F9FC;color:var(--sb-text);}
-.workspace-nav-item.active{background:var(--sb-soft);color:var(--sb-blue);}
-.workspace-nav-item:not(:last-of-type)::after{content:'';position:absolute;left:25px;top:42px;height:9px;border-left:1px dashed #D5DCE8;pointer-events:none;}
-.workspace-nav-icon{width:30px;height:30px;border-radius:9px;background:#F1F4F8;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;flex:none;color:#7A8496;}
-.workspace-nav-item.active .workspace-nav-icon{background:#fff;color:var(--sb-blue);box-shadow:0 2px 8px rgba(37,99,235,.12);}
-.workspace-nav-item b{display:block;font-size:13px;line-height:1.3;}
-.workspace-nav-item > span:nth-child(2){min-width:0;flex:1;}
-.step-state{font-style:normal;font-size:9px;line-height:1;padding:4px 5px;border-radius:999px;background:#F2F4F7;color:#98A2B3;white-space:nowrap;align-self:center;}
-.workspace-nav-item.active .step-state{background:#fff;color:var(--sb-blue);}
-.workspace-nav-item.completed .step-state{background:#ECFDF3;color:#067647;}
-.workspace-nav-item.completed .workspace-nav-icon{background:#ECFDF3;color:#067647;}
-.workspace-nav-item.locked{opacity:.78;}
-.workspace-nav-item.locked .workspace-nav-icon{color:#98A2B3;}
-.workspace-current-guide{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid var(--sb-border);border-radius:16px;padding:14px 18px;margin:14px 0 18px;box-shadow:0 8px 24px rgba(20,33,61,.05);}
-.current-guide-mark{width:38px;height:38px;border-radius:11px;background:var(--sb-soft);color:var(--sb-blue);display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:11px;flex:none;}
-.current-guide-kicker{font-size:9px;font-weight:800;letter-spacing:.1em;color:#98A2B3;margin-bottom:3px;}
-.current-guide-copy{min-width:0;flex:1;}
-.current-guide-copy strong{display:block;color:var(--sb-text);font-size:14px;}
-.current-guide-copy p{margin:3px 0 0;color:var(--sb-muted);font-size:11px;line-height:1.55;}
-.current-guide-next{font-size:10px;color:var(--sb-blue);font-weight:700;white-space:nowrap;}
-.sidebar-progress{margin-top:auto;background:#F8FAFD;border:1px solid var(--sb-border);border-radius:13px;padding:12px;}
-.sidebar-progress-top{display:flex;justify-content:space-between;font-size:10px;color:var(--sb-muted);margin-bottom:8px;}
-.sidebar-progress-top b{color:var(--sb-blue);}
-.sidebar-progress-bar{height:6px;background:#E9EEF5;border-radius:99px;overflow:hidden;}
-.sidebar-progress-bar i{display:block;width:0;height:100%;background:linear-gradient(90deg,#2563EB,#60A5FA);border-radius:99px;transition:width .25s ease;}
-.sidebar-progress p{font-size:10px;color:#667085;line-height:1.5;margin:8px 0 0;}
-.tab-panel{scroll-margin-top:20px;}
-@media(max-width:900px){body{padding:0 14px 60px;}.wrap{margin-left:0;max-width:none;}.workspace-nav{position:sticky;top:8px;left:auto;bottom:auto;width:100%;height:auto;max-height:none;display:grid;grid-template-columns:repeat(3,1fr);padding:10px;margin-bottom:14px;overflow:visible;}.sidebar-brand,.sidebar-heading,.sidebar-progress{display:none;}.workspace-nav-item{padding:9px;}.workspace-nav-item:not(:last-of-type)::after{display:none;}.workspace-nav-item small{display:none;}}
-@media(max-width:600px){.workspace-nav{grid-template-columns:repeat(2,1fr);}.workspace-nav-icon{width:28px;height:28px;}.step-state{display:none;}.workspace-current-guide{padding:12px;}.current-guide-next{display:none;}}
-</style>
-<style id="sidebarVariantB">
-/* Variant B — 深色專注流程（保留） */
-.workspace-nav{background:#101B2E;border-color:#22324D;box-shadow:0 16px 40px rgba(8,18,34,.28);}
-.sidebar-brand{border-bottom-color:#263751;}
-.sidebar-brand b{color:#fff}.sidebar-brand small{color:#91A4C2}.sidebar-heading{color:#7086A6}
-.workspace-nav-item{color:#A7B6CB}.workspace-nav-item:hover{background:#172640;color:#fff}.workspace-nav-item.active{background:#1B4FA8;color:#fff;box-shadow:inset 3px 0 #60A5FA}
-.workspace-nav-item:not(:last-of-type)::after{border-color:#31435F}.workspace-nav-icon{background:#18283F;color:#8FA3C0}.workspace-nav-item.active .workspace-nav-icon{background:#fff;color:#1D5ED8;box-shadow:none}
-.workspace-nav-item small{color:#8296B2}.sidebar-progress{background:#15243A;border-color:#2A3B57}.sidebar-progress-top{color:#8EA1BC}.sidebar-progress-top b{color:#67B3FF}.sidebar-progress-bar{background:#243650}.sidebar-progress-bar i{background:linear-gradient(90deg,#3B82F6,#67B3FF)}.sidebar-progress p{color:#8EA1BC}
-header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,61,.07);}
-</style>
 <style id="dynPageSizeStyle"></style>
-<style id="v3_3_76_enterprise_sidebar">
-/* v3.3.76：企業級個人工作台側欄。固定單屏、無側欄捲軸；以層級、節點、進度與留白建立視覺導引。 */
-.workspace-nav{overflow:hidden!important;height:calc(100vh - 36px);max-height:calc(100vh - 36px);padding:16px 12px 14px!important;background:linear-gradient(180deg,#0B1730 0%,#0E1D38 58%,#102442 100%)!important;border:1px solid rgba(148,163,184,.18)!important;border-radius:22px!important;box-shadow:0 20px 55px rgba(5,15,35,.24)!important;}
-.sidebar-brand{padding:2px 8px 14px!important;margin-bottom:8px!important;border-bottom:1px solid rgba(148,163,184,.16)!important}.sidebar-brand-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(145deg,#3B82F6,#60A5FA)!important;box-shadow:0 8px 22px rgba(59,130,246,.28)!important}.sidebar-brand b{font-size:15px!important;color:#F8FAFC!important}.sidebar-brand small{color:#8EA3C1!important}.sidebar-heading{padding:8px 10px 7px!important;color:#6F86A7!important;font-size:9px!important;letter-spacing:.14em!important}
-.workspace-nav-item{min-height:52px;padding:8px 9px!important;border:1px solid transparent!important;border-radius:13px!important;color:#9BAEC7!important}.workspace-nav-item:hover{background:rgba(255,255,255,.055)!important;color:#F8FAFC!important}.workspace-nav-item.active{background:linear-gradient(90deg,rgba(37,99,235,.36),rgba(37,99,235,.16))!important;color:#fff!important;border-color:rgba(96,165,250,.16)!important;box-shadow:inset 3px 0 #60A5FA,0 7px 18px rgba(2,8,23,.12)!important}.workspace-nav-item.locked{opacity:.46!important;cursor:not-allowed!important}.workspace-nav-item.completed{color:#D4E2F5!important}.workspace-nav-item:not(:last-of-type)::after{left:24px;top:43px;height:10px;border-color:rgba(125,145,172,.25)!important}.workspace-nav-icon{width:28px;height:28px;border-radius:9px;background:rgba(148,163,184,.10)!important;color:#7F95B2!important;font-size:9px!important}.workspace-nav-item.active .workspace-nav-icon{background:#fff!important;color:#2563EB!important}.workspace-nav-item.completed .workspace-nav-icon{background:rgba(16,185,129,.13)!important;color:#5EE0B1!important}.workspace-nav-item b{font-size:12px!important;line-height:1.25!important}.workspace-nav-item small{font-size:9px!important;color:#7389A6!important;margin-top:2px!important}.step-state{background:rgba(148,163,184,.10)!important;color:#7186A2!important;font-size:8px!important;padding:4px 6px!important}.workspace-nav-item.active .step-state{background:rgba(255,255,255,.12)!important;color:#CFE3FF!important}.workspace-nav-item.completed .step-state{background:rgba(16,185,129,.12)!important;color:#6EE7B7!important}
-.sidebar-progress{margin-top:auto!important;background:rgba(255,255,255,.055)!important;border:1px solid rgba(148,163,184,.15)!important;border-radius:14px!important;padding:11px!important}.sidebar-progress-top{font-size:9px!important;color:#7F95B2!important}.sidebar-progress-top b{font-size:11px!important;color:#67B3FF!important}.sidebar-progress-bar{height:5px!important;background:rgba(148,163,184,.16)!important}.sidebar-progress-bar i{background:linear-gradient(90deg,#3B82F6,#7DD3FC)!important}.sidebar-progress p{font-size:9px!important;color:#8196B2!important;margin-top:7px!important}
-@media(min-width:901px){.workspace-nav{left:18px!important;top:18px!important;bottom:18px!important;width:252px!important}.wrap{margin-left:292px!important;max-width:calc(100vw - 330px)!important}}
-</style>
-<style id="v3_3_77_sidebar_color_fix">
-/* v3.3.77：修正側欄色彩被深色 Variant / enterprise 規則覆蓋的問題。
-   保留 v3.3.76 的單屏布局與進度邏輯，只恢復清楚、可讀的淺色介面。 */
-.workspace-nav{
-  background:#FFFFFF!important;
-  border-color:#E5EAF2!important;
-  box-shadow:0 12px 36px rgba(20,33,61,.08)!important;
-}
-.sidebar-brand{border-bottom-color:#E5EAF2!important;}
-.sidebar-brand-mark{
-  background:linear-gradient(135deg,#2563EB,#4F8CFF)!important;
-  color:#FFFFFF!important;
-  box-shadow:0 6px 16px rgba(37,99,235,.22)!important;
-}
-.sidebar-brand b{color:#12233F!important;}
-.sidebar-brand small{color:#667085!important;}
-.sidebar-heading{color:#98A2B3!important;}
-.workspace-nav-item{color:#667085!important;border-color:transparent!important;}
-.workspace-nav-item:hover{background:#F7F9FC!important;color:#172033!important;}
-.workspace-nav-item.active{
-  background:#EEF4FF!important;
-  color:#2563EB!important;
-  border-color:#D8E5FF!important;
-  box-shadow:inset 3px 0 #2563EB!important;
-}
-.workspace-nav-item.completed{color:#344054!important;}
-.workspace-nav-item.locked{opacity:.62!important;}
-.workspace-nav-item:not(:last-of-type)::after{border-color:#D5DCE8!important;}
-.workspace-nav-icon{background:#F1F4F8!important;color:#7A8496!important;}
-.workspace-nav-item.active .workspace-nav-icon{background:#FFFFFF!important;color:#2563EB!important;box-shadow:0 2px 8px rgba(37,99,235,.12)!important;}
-.workspace-nav-item.completed .workspace-nav-icon{background:#ECFDF3!important;color:#067647!important;}
-.workspace-nav-item small{color:#8290A4!important;}
-.step-state{background:#F2F4F7!important;color:#98A2B3!important;}
-.workspace-nav-item.active .step-state{background:#FFFFFF!important;color:#2563EB!important;}
-.workspace-nav-item.completed .step-state{background:#ECFDF3!important;color:#067647!important;}
-.sidebar-progress{background:#F8FAFD!important;border-color:#E5EAF2!important;}
-.sidebar-progress-top{color:#667085!important;}
-.sidebar-progress-top b{color:#2563EB!important;}
-.sidebar-progress-bar{background:#E9EEF5!important;}
-.sidebar-progress-bar i{background:linear-gradient(90deg,#2563EB,#60A5FA)!important;}
-.sidebar-progress p{color:#667085!important;}
-@media(max-width:900px){
-  .workspace-nav{background:#FFFFFF!important;}
-}
-</style>
-
 </head>
 <body>
 <div id="authGate">
@@ -1099,7 +889,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
   <header>
     <div>
       <div class="eyebrow">求職前，先看懂這份職缺</div>
-      <h1>職透<span class="version-badge">V3.3.79</span></h1>
+      <h1>職透<span class="version-badge">V3.3.64</span></h1>
     </div>
     <div class="header-right">
       <div class="header-api-row">
@@ -1107,75 +897,16 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         <button class="header-api-link" id="apiSettingsBtn" type="button" onclick="openApiModal()">🔑 API Key 設定</button>
         <span class="api-status-pill" id="apiStatusPill">尚未設定（使用系統內建連線）</span>
       </div>
-      <p class="tagline">依照步驟完成履歷、職缺、健診、面試與求職文件。</p>
-      
+      <p class="tagline">看穿一份履歷，也看穿一個職缺。上傳一次，完成媒合、健診、模擬面試、進度追蹤、客製履歷與提案簡報。</p>
+      <a href="#mainTabs" class="skip-to-tabs-link">先看看有哪些功能 ↓</a>
     </div>
   </header>
 
-  <section class="workspace-hero" id="workspaceHome" aria-label="JobSight 個人求職工作台">
-    <div class="workspace-hero-main">
-      <div class="workspace-kicker">PERSONAL CAREER WORKSPACE</div>
-      <h2>你的求職工作台</h2>
-      <p>從履歷整理、職缺媒合，到面試準備與客製文件，一個工作台完成整個求職流程。</p>
-      <div class="workspace-hero-actions">
-        <button type="button" class="workspace-primary" data-workspace-target="t1">完成資料後：查看職缺媒合 <span>→</span></button>
-        <button type="button" class="workspace-secondary" data-scroll-target="resumeWorkspace">管理我的履歷</button>
-      </div>
-    </div>
-    <div class="workspace-progress-card">
-      <div class="workspace-progress-ring" id="workspaceProgressRing"><span id="workspaceProgressValue">0%</span></div>
-      <div>
-        <div class="workspace-progress-label">求職準備度</div>
-        <div class="workspace-progress-title" id="workspaceProgressTitle">先上傳履歷開始</div>
-        <div class="workspace-progress-hint" id="workspaceProgressHint">履歷與職缺都準備好後，即可一次啟動 AI 分析。</div>
-      </div>
-    </div>
-  </section>
-
-  <nav class="workspace-nav" id="workspaceNav" aria-label="求職步驟導覽">
-    <div class="sidebar-brand"><span class="sidebar-brand-mark">J</span><div><b>JobSight</b><small>個人求職工作台</small></div></div>
-    <div class="sidebar-heading">求職流程</div>
-    <button type="button" class="workspace-nav-item active" data-scroll-target="resumeWorkspace" data-sidebar-step="1">
-      <span class="workspace-nav-icon">01</span><span><b>準備求職資料</b><small>上傳履歷＋貼上目標職缺</small></span><em class="step-state">現在</em>
-    </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t1" data-sidebar-step="2">
-      <span class="workspace-nav-icon">02</span><span><b>查看職缺媒合</b><small>看適配程度與優缺點</small></span><em class="step-state">待開始</em>
-    </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t2" data-sidebar-step="3">
-      <span class="workspace-nav-icon">03</span><span><b>檢查履歷</b><small>找出可以改善的地方</small></span><em class="step-state">待開始</em>
-    </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t4" data-sidebar-step="4">
-      <span class="workspace-nav-icon">04</span><span><b>練習面試</b><small>練習題目與回答</small></span><em class="step-state">待開始</em>
-    </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t6" data-sidebar-step="5">
-      <span class="workspace-nav-icon">05</span><span><b>客製履歷</b><small>依目標職缺調整內容</small></span><em class="step-state">待開始</em>
-    </button>
-    <button type="button" class="workspace-nav-item" data-workspace-target="t7" data-sidebar-step="6">
-      <span class="workspace-nav-icon">06</span><span><b>面試提案</b><small>整理成面試簡報</small></span><em class="step-state">待開始</em>
-    </button>
-    <div class="sidebar-progress" id="sidebarProgress">
-      <div class="sidebar-progress-top"><span>目前進度</span><b id="sidebarProgressValue">0%</b></div>
-      <div class="sidebar-progress-bar"><i id="sidebarProgressBar"></i></div>
-      <p id="sidebarProgressHint">先完成履歷上傳</p>
-    </div>
-  </nav>
-
-  <!-- v3.3.73：移除與左側步驟重複的水平功能卡；主畫面只保留當前工作提示。 -->
-  <section class="workspace-current-guide" id="workspaceCurrentGuide" aria-live="polite">
-    <div class="current-guide-mark" id="currentGuideMark">01</div>
-    <div class="current-guide-copy">
-      <div class="current-guide-kicker">現在只做這一步</div>
-      <strong id="currentGuideTitle">先完成履歷上傳</strong>
-      <p id="currentGuideText">上傳一次即可讓後面的職缺媒合、履歷健診與面試工具共用，不需要重複上傳。</p>
-    </div>
-    <div class="current-guide-next" id="currentGuideNext">完成後再往下一步</div>
-  </section>
-
   <!-- global resume upload -->
-  <div class="panel workspace-intake" id="resumeWorkspace">
+  <div class="panel">
     <div class="upload-row">
       <div class="upload-left-col">
-        <div class="field-label"><span>履歷檔案（所有工具共用一次上傳）</span><span id="pdfStatus">尚未上傳</span></div>
+        <div class="field-label"><span>STEP 1・履歷 PDF／Word（所有工具共用一次上傳）</span><span id="pdfStatus">尚未上傳</span></div>
         <div class="dropzone" id="dropzone">
           <span class="icon">📎</span>
           <div class="dz-title">點擊選擇或拖曳履歷到此處</div>
@@ -1190,7 +921,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         <button class="pdf-preview-toggle" id="pdfPreviewToggleBtn" type="button" style="display:none;">顯示完整擷取文字</button>
       </div>
       <div>
-        <div class="field-label"><span>目標職務類型（影響 AI 分析重點）</span></div>
+        <div class="field-label"><span>STEP 2・職務類型（影響語氣與重點）</span></div>
         <select id="jobType">
           <option value="技術研發">技術研發</option>
           <option value="業務/客戶">業務/客戶</option>
@@ -1204,7 +935,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         </p>
 
         <div class="shared-jd-block">
-          <div class="field-label"><span>目標職缺說明（後面的工具共用一次輸入）</span><span id="jdCountShared">0 字</span></div>
+          <div class="field-label"><span>STEP 3・職缺說明（媒合／健診／模擬面試 共用一次輸入）</span><span id="jdCountShared">0 字</span></div>
           <textarea id="sharedJobDesc" placeholder="貼上職缺全文，包含職稱、職責與條件要求⋯下方所有工具都會直接使用這份說明，不需要在每個頁籤重複貼上">【前端工程師】
 
 工作內容：
@@ -1241,8 +972,8 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
     </div>
   </div>
 
-  <!-- legacy functional tabs: kept for compatibility; workspace navigation above is the primary UI -->
-  <nav class="tabs legacy-tabs" id="mainTabs" aria-hidden="true">
+  <!-- tabs -->
+  <nav class="tabs" id="mainTabs">
     <button class="tab-btn active" data-tab="t1"><span class="step-num">01<span class="tab-dot" id="dot1"></span></span><span class="step-label">🎯 履歷媒合</span><span class="step-meta" id="stepMeta1"></span></button>
     <button class="tab-btn" data-tab="t2"><span class="step-num">02<span class="tab-dot" id="dot2"></span></span><span class="step-label">🩺 履歷健診</span><span class="step-meta" id="stepMeta2"></span></button>
     <button class="tab-btn" data-tab="t4"><span class="step-num">03<span class="tab-dot" id="dot4"></span></span><span class="step-label">🎤 模擬面試</span><span class="step-meta" id="stepMeta4"></span></button>
@@ -1251,7 +982,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
   </nav>
 
   <!-- TAB 1: 履歷媒合 -->
-  <div class="tab-panel" id="t1">
+  <div class="tab-panel active" id="t1">
     <div class="panel tool-panel">
       <p class="tool-note">會使用上方填寫的履歷與職缺說明，產生媒合分數、匹配重點與自我推薦信。</p>
       <div class="cta-row">
@@ -1379,115 +1110,203 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
   </footer>
 </div>
 
-<!-- ---------- API Key 設定 Modal（Claude / Gemini / ChatGPT / Agnes AI / NVIDIA NIM / GroqCloud / OpenRouter / Mistral AI Studio） ---------- -->
+<!-- ---------- AI API Key 設定 Modal：V3.3.87 多供應商、可換模型 ---------- -->
 <div class="modal-overlay" id="api-modal">
   <div class="modal-box">
     <div class="modal-head">
       <h3>AI API Key 設定</h3>
       <button class="modal-close" type="button" onclick="closeApiModal()">✕</button>
     </div>
-    <p class="desc">若想使用你自己的 AI 帳號額度來執行媒合分析、履歷健診、模擬面試與拒絕原因分析，可在下方選擇一個供應商並貼上 API Key。金鑰僅會暫存在本次瀏覽器分頁記憶體（sessionStorage），關閉分頁即清除，不會上傳到任何伺服器。若不設定，工具會繼續使用系統內建連線（僅在支援的環境中可用）。</p>
+    <p class="desc">可選擇 AI 供應商，輸入自己的 API Key、Base URL 與 Model ID。模型 ID 不再寫死；原廠推出新模型時，直接修改 Model ID 即可。Key 與設定僅暫存在本次瀏覽器分頁的 sessionStorage，不會上傳到伺服器。</p>
 
-    <p class="desc">模型 ID 不寫死：每個供應商都有可編輯的「模型 ID」欄位。若原廠更換免費／試用模型，只需在這裡輸入新 ID 即可，不必等待程式更新。</p>
     <div class="provider-tabs" id="provider-tabs">
-      <button class="provider-tab-btn active" data-provider="claude" type="button" onclick="switchProviderTab('claude')">🟣 Claude (Anthropic)</button>
-      <button class="provider-tab-btn" data-provider="gemini" type="button" onclick="switchProviderTab('gemini')">✨ Gemini (Google AI Studio)</button>
-      <button class="provider-tab-btn" data-provider="chatgpt" type="button" onclick="switchProviderTab('chatgpt')">🟢 ChatGPT (OpenAI)</button>
+      <button class="provider-tab-btn active" data-provider="claude" type="button" onclick="switchProviderTab('claude')">🟣 Claude</button>
+      <button class="provider-tab-btn" data-provider="gemini" type="button" onclick="switchProviderTab('gemini')">✨ Gemini</button>
+      <button class="provider-tab-btn" data-provider="chatgpt" type="button" onclick="switchProviderTab('chatgpt')">🟢 OpenAI</button>
       <button class="provider-tab-btn" data-provider="agnes" type="button" onclick="switchProviderTab('agnes')">🔷 Agnes AI</button>
       <button class="provider-tab-btn" data-provider="nvidia" type="button" onclick="switchProviderTab('nvidia')">🟩 NVIDIA NIM</button>
       <button class="provider-tab-btn" data-provider="groq" type="button" onclick="switchProviderTab('groq')">⚡ GroqCloud</button>
       <button class="provider-tab-btn" data-provider="openrouter" type="button" onclick="switchProviderTab('openrouter')">🌐 OpenRouter</button>
-      <button class="provider-tab-btn" data-provider="mistral" type="button" onclick="switchProviderTab('mistral')">🟠 Mistral AI Studio</button>
+      <button class="provider-tab-btn" data-provider="mistral" type="button" onclick="switchProviderTab('mistral')">🟠 Mistral AI</button>
     </div>
 
-    <div id="provider-pane-claude" class="provider-pane">
+    <div id="provider-panes"></div>
+    <div id="provider-pane-claude" class="provider-pane" style="display:block">
       <div class="form-group">
         <label class="form-label">Anthropic API Key</label>
         <input id="api-key-input-claude" type="password" class="form-ctrl" placeholder="sk-ant-...">
-        <p class="form-hint">API Key 依原廠文件取得；金鑰只暫存在本次瀏覽器分頁。</p>
+        <p class="form-hint">取得金鑰：https://console.anthropic.com/。</p>
       </div>
       <div class="form-group">
-        <label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-claude" type="text" class="form-ctrl" placeholder="claude-sonnet-5">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-claude" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-claude" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('claude')">讀取模型</button>
+        </div>
+        <select id="api-model-select-claude" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-claude">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        
       </div>
     </div>
     <div id="provider-pane-gemini" class="provider-pane" style="display:none">
       <div class="form-group">
         <label class="form-label">Google AI Studio API Key</label>
-        <input id="api-key-input-gemini" type="password" class="form-ctrl" placeholder="AIzaSy... 或 AQ.Ab8...">
-        <p class="form-hint">Gemini 模型可依 Google AI Studio 最新可用模型自行修改。</p>
+        <input id="api-key-input-gemini" type="password" class="form-ctrl" placeholder="AIza... 或 AQ....">
+        <p class="form-hint">取得金鑰：https://aistudio.google.com/apikey。</p>
       </div>
       <div class="form-group">
-        <label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-gemini" type="text" class="form-ctrl" placeholder="gemini-2.5-flash">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-gemini" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-gemini" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('gemini')">讀取模型</button>
+        </div>
+        <select id="api-model-select-gemini" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-gemini">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        
       </div>
     </div>
     <div id="provider-pane-chatgpt" class="provider-pane" style="display:none">
       <div class="form-group">
         <label class="form-label">OpenAI API Key</label>
         <input id="api-key-input-chatgpt" type="password" class="form-ctrl" placeholder="sk-...">
-        <p class="form-hint">OpenAI API 模型可依官方最新模型 ID 自行修改。</p>
+        <p class="form-hint">取得金鑰：https://platform.openai.com/api-keys。</p>
       </div>
       <div class="form-group">
-        <label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-chatgpt" type="text" class="form-ctrl" placeholder="gpt-4o">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-chatgpt" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-chatgpt" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('chatgpt')">讀取模型</button>
+        </div>
+        <select id="api-model-select-chatgpt" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-chatgpt">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        
       </div>
     </div>
     <div id="provider-pane-agnes" class="provider-pane" style="display:none">
       <div class="form-group">
         <label class="form-label">Agnes AI API Key</label>
-        <input id="api-key-input-agnes" type="password" class="form-ctrl" placeholder="貼上你的 Agnes AI API Key">
-        <p class="form-hint">目前依 Agnes AI 公開資料，推薦先使用 agnes-2.5-flash；模型名稱可隨原廠更新自行修改。</p>
+        <input id="api-key-input-agnes" type="password" class="form-ctrl" placeholder="貼上你的 Agnes API Key">
+        <p class="form-hint">取得金鑰：請依 Agnes AI 原廠文件取得。</p>
       </div>
       <div class="form-group">
-        <label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-agnes" type="text" class="form-ctrl" placeholder="agnes-2.5-flash">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-agnes" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
       </div>
       <div class="form-group">
-        <label class="form-label">Agnes AI Base URL（選填，預設使用官方端點）</label>
-        <input id="api-baseurl-agnes" type="text" class="form-ctrl" placeholder="https://apihub.agnes-ai.com/v1">
-        <p class="form-hint">留空則使用官方預設端點 https://apihub.agnes-ai.com/v1（model: agnes-2.5-flash）。</p>
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-agnes" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('agnes')">讀取模型</button>
+        </div>
+        <select id="api-model-select-agnes" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-agnes">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        <p class="form-hint">依 Agnes 客服最新回覆，預設模型改為 <b>agnes-2.5-flash</b>；也可自行改成 <b>agnes-3.0-flash</b> 或原廠之後的新模型。</p>
       </div>
     </div>
-
-
     <div id="provider-pane-nvidia" class="provider-pane" style="display:none">
-      <div class="form-group"><label class="form-label">NVIDIA NIM API Key</label>
+      <div class="form-group">
+        <label class="form-label">NVIDIA NIM API Key</label>
         <input id="api-key-input-nvidia" type="password" class="form-ctrl" placeholder="貼上 NVIDIA API Key">
-        <p class="form-hint">NVIDIA Hosted NIM 使用 OpenAI 相容端點；可在 NVIDIA API Catalog / build.nvidia.com 取得 API Key。</p></div>
-      <div class="form-group"><label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-nvidia" type="text" class="form-ctrl" placeholder="nvidia/nemotron-3-super-120b-a12b"></div>
-      <div class="form-group"><label class="form-label">Base URL</label>
-        <input id="api-baseurl-nvidia" type="text" class="form-ctrl" placeholder="https://integrate.api.nvidia.com/v1"></div>
+        <p class="form-hint">取得金鑰：https://build.nvidia.com/。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-nvidia" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-nvidia" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('nvidia')">讀取模型</button>
+        </div>
+        <select id="api-model-select-nvidia" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-nvidia">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        <p class="form-hint">NVIDIA API Catalog 提供可用的免費 prototype endpoint；Model ID 可直接輸入，或按「讀取模型」取得原廠清單。</p>
+      </div>
     </div>
     <div id="provider-pane-groq" class="provider-pane" style="display:none">
-      <div class="form-group"><label class="form-label">GroqCloud API Key</label>
-        <input id="api-key-input-groq" type="password" class="form-ctrl" placeholder="貼上 Groq API Key">
-        <p class="form-hint">Groq 提供 Free tier；模型清單會持續變動，因此模型 ID 可自行修改。</p></div>
-      <div class="form-group"><label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-groq" type="text" class="form-ctrl" placeholder="openai/gpt-oss-20b"></div>
-      <div class="form-group"><label class="form-label">Base URL</label>
-        <input id="api-baseurl-groq" type="text" class="form-ctrl" placeholder="https://api.groq.com/openai/v1"></div>
+      <div class="form-group">
+        <label class="form-label">GroqCloud API Key</label>
+        <input id="api-key-input-groq" type="password" class="form-ctrl" placeholder="gsk_...">
+        <p class="form-hint">取得金鑰：https://console.groq.com/keys。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-groq" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-groq" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('groq')">讀取模型</button>
+        </div>
+        <select id="api-model-select-groq" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-groq">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        <p class="form-hint">Groq API 使用 OpenAI 相容介面；免費/Developer 額度與可用模型以原廠目前帳戶狀態為準。</p>
+      </div>
     </div>
     <div id="provider-pane-openrouter" class="provider-pane" style="display:none">
-      <div class="form-group"><label class="form-label">OpenRouter API Key</label>
-        <input id="api-key-input-openrouter" type="password" class="form-ctrl" placeholder="貼上 OpenRouter API Key">
-        <p class="form-hint">免費模型建議使用 <b>openrouter/free</b>：由 OpenRouter 自動從當時可用的免費模型中選擇，不把單一免費模型 ID 寫死。</p></div>
-      <div class="form-group"><label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-openrouter" type="text" class="form-ctrl" placeholder="openrouter/free"></div>
-      <div class="form-group"><label class="form-label">Base URL</label>
-        <input id="api-baseurl-openrouter" type="text" class="form-ctrl" placeholder="https://openrouter.ai/api/v1"></div>
+      <div class="form-group">
+        <label class="form-label">OpenRouter API Key</label>
+        <input id="api-key-input-openrouter" type="password" class="form-ctrl" placeholder="sk-or-v1-...">
+        <p class="form-hint">取得金鑰：https://openrouter.ai/keys。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-openrouter" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-openrouter" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('openrouter')">讀取模型</button>
+        </div>
+        <select id="api-model-select-openrouter" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-openrouter">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        <p class="form-hint">OpenRouter 支援大量模型與免費模型；可填 <code>openrouter/free</code>，或直接輸入原廠目前提供的任一 Model ID。免費模型清單會隨時間變動，不在程式內鎖死。</p>
+      </div>
     </div>
     <div id="provider-pane-mistral" class="provider-pane" style="display:none">
-      <div class="form-group"><label class="form-label">Mistral AI Studio API Key</label>
-        <input id="api-key-input-mistral" type="password" class="form-ctrl" placeholder="貼上 Mistral API Key">
-        <p class="form-hint">Mistral Studio 目前提供 Free mode；實際可用模型與限制依原廠帳號狀態。</p></div>
-      <div class="form-group"><label class="form-label">模型 ID（可自行修改）</label>
-        <input id="api-model-input-mistral" type="text" class="form-ctrl" placeholder="mistral-small-latest"></div>
-      <div class="form-group"><label class="form-label">Base URL</label>
-        <input id="api-baseurl-mistral" type="text" class="form-ctrl" placeholder="https://api.mistral.ai/v1"></div>
+      <div class="form-group">
+        <label class="form-label">Mistral AI Studio API Key</label>
+        <input id="api-key-input-mistral" type="password" class="form-ctrl" placeholder="貼上你的 Mistral API Key">
+        <p class="form-hint">取得金鑰：https://console.mistral.ai/api-keys/。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Base URL</label>
+        <input id="api-baseurl-mistral" type="text" class="form-ctrl">
+        <p class="form-hint">官方預設 Base URL，可自行修改。</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Model ID（可隨原廠更新自行修改）</label>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="api-model-input-mistral" type="text" class="form-ctrl" style="flex:1;">
+          <button class="ghost" type="button" onclick="loadProviderModels('mistral')">讀取模型</button>
+        </div>
+        <select id="api-model-select-mistral" class="form-ctrl" style="display:none;margin-top:8px;"></select>
+        <p class="form-hint" id="api-model-status-mistral">可直接輸入新模型 ID，不受程式內建清單限制。</p>
+        <p class="form-hint">Mistral Studio 目前提供 Free mode，但有使用量與速率限制；模型可由原廠清單動態取得。</p>
+      </div>
     </div>
-
     <div class="modal-current-mode" id="modal-current-mode"></div>
     <div class="modal-foot">
       <button class="secondary" type="button" onclick="clearApiKey()">清除並改用系統內建</button>
@@ -1523,6 +1342,5 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
 <script src="js/tab-tailored-resume.js"></script>
 <script src="js/tab-deck.js"></script>
 <script src="js/init.js"></script>
-<script src="js/workspace-ui.js"></script>
 </body>
 </html>

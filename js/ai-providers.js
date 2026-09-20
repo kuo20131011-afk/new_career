@@ -14,106 +14,18 @@
    100% 相同。載入順序很重要，請維持 index.html 裡目前的 <script src> 排列順序。
 ========================================================================= */
 /* ---------------- 通用重試包裝器：處理 429/502/503/504 等暫時性錯誤 ---------------- */
-/* v3.3.65 修復：429（額度／頻率已達上限）原本跟 502/503/504（伺服器暫時性錯誤）
-   用同一套「短延遲、連續重試」邏輯，被一視同仁塞進 RM_RETRYABLE_STATUSES。
-   問題是：502/503 這類錯誤本來就適合「等一下下、馬上再試一次」，通常真的是暫時
-   的；但 429 代表「已經在限流視窗裡超過額度」，用 1.2 秒／2.4 秒／4.8 秒這種短
-   延遲連續重試 3 次，等於在同一個限流視窗裡硬塞更多請求進去，不但不會讓限流恢復，
-   反而會把使用者原本沒超過的 RPM（每分鐘請求數）額度也一起燒光——這正是使用者
-   回報「Agnes AI 額度明明沒滿卻一直顯示已達上限」的根本原因：不是額度真的用完，
-   是「一鍵產生」三個階段只要有一個先撞到 429，程式自己在幾秒內對同一個限流窗口
-   補打了 3 次重試，等於幫使用者把 RPM 燒到真的超過。
-   改成 429 單獨處理，不再跟 502/503/504 共用同一套重試邏輯：只認伺服器回應的
-   Retry-After 標頭，有給就照著等一次（最多等 30 秒，避免畫面卡太久），沒有給
-   就直接回報失敗、不再盲目重試——寧可讓使用者自己按一次重試，也不要在使用者
-   不知情的狀況下，一次呼叫就偷偷幫他多打好幾發請求去撞同一道限流牆。 */
-const RM_SERVER_ERROR_STATUSES = [502, 503, 504];
-
-/* v3.3.76：集中式 AI Request Governor
-   目的不是繞過供應商限制，而是在瀏覽器端主動排隊、預留與計算請求額度，
-   讓單一瀏覽器／多分頁盡量維持在使用者設定的安全線以下。
-   安全線採「小於」：RPM 14、RPD 49、TPM 19,000。
-   注意：瀏覽器無法對多台裝置／多個瀏覽器的同一 API 專案做全域硬保證；若要硬保證，
-   必須把 API 呼叫移到有集中狀態的 server-side proxy。這裡不做 key rotation 或其他規避限流。
-*/
-const RM_GOVERNOR = {
-  rpm: 14, rpd: 49, tpm: 19000,
-  storageKey: 'jobsight_ai_governor_v376',
-  channel: null,
-  state(){
-    try { return JSON.parse(localStorage.getItem(this.storageKey) || '{"requests":[],"tokens":[]}'); }
-    catch(e){ return {requests:[],tokens:[]}; }
-  },
-  save(st){ try { localStorage.setItem(this.storageKey, JSON.stringify(st)); } catch(e){} try{ this.channel?.postMessage({type:'sync'}); }catch(e){} },
-  prune(st, now){
-    st.requests=(st.requests||[]).filter(t=>now-t<86400000);
-    st.tokens=(st.tokens||[]).filter(x=>now-x.t<60000);
-    return st;
-  },
-  init(){ try{ this.channel=new BroadcastChannel('jobsight_ai_governor'); }catch(e){} },
-  estimate(text){ return Math.max(1, Math.ceil(String(text||'').length/2)); },
-  async waitForBudget(tokenReservation){
-    const need=Math.max(1,Math.ceil(tokenReservation||1));
-    if(need>=this.tpm) throw new Error('rate_limit:本次 AI 輸入內容本身已接近或超過 19,000 TPM 安全線，為避免撞到供應商限制，請縮短履歷／職缺文字後再試。');
-    for(;;){
-      const now=Date.now(); let st=this.prune(this.state(),now);
-      const req60=st.requests.filter(t=>now-t<60000).length;
-      const reqDay=st.requests.length;
-      const tok60=st.tokens.reduce((sum,x)=>sum+x.n,0);
-      let wait=0;
-      if(req60>=this.rpm) wait=Math.max(wait,60000-(now-Math.min(...st.requests.filter(t=>now-t<60000))));
-      if(reqDay>=this.rpd){ const first=st.requests[0]; wait=Math.max(wait,86400000-(now-first)); }
-      if(tok60+need>this.tpm){
-        const sorted=st.tokens.filter(x=>now-x.t<60000).sort((a,b)=>a.t-b.t);
-        let running=tok60;
-        for(const x of sorted){ running-=x.n; if(running+need<=this.tpm){ wait=Math.max(wait,60000-(now-x.t)); break; } }
-        if(running+need>this.tpm && sorted.length) wait=Math.max(wait,60000-(now-sorted[sorted.length-1].t));
-      }
-      if(wait<=0){
-        st.requests.push(now); st.tokens.push({t:now,n:need}); this.save(st);
-        return;
-      }
-      const seconds=Math.ceil(wait/1000);
-      throw Object.assign(new Error('rate_queue:AI 請求已排隊，為避免超過安全額度，請約 '+seconds+' 秒後再試。'),{code:'RATE_QUEUE',waitMs:wait});
-    }
-  },
-  chargeActual(extraTokens){
-    const n=Math.max(0,Math.ceil(Number(extraTokens)||0)); if(!n) return;
-    const now=Date.now(); const st=this.prune(this.state(),now); st.tokens.push({t:now,n}); this.save(st);
-  }
-};
-RM_GOVERNOR.init();
-
-
-async function fetchWithRetry(fetchFn, maxRetries, governorMeta){
+const RM_RETRYABLE_STATUSES = [429, 502, 503, 504];
+async function fetchWithRetry(fetchFn, maxRetries){
   let lastResp = null;
-  let rateLimitRetried = false;
   for (let attempt = 0; attempt <= maxRetries; attempt++){
     let resp;
-    try {
-      if (governorMeta && governorMeta.reserve) await RM_GOVERNOR.waitForBudget(governorMeta.tokens);
-      resp = await fetchFn();
-    }
+    try { resp = await fetchFn(); }
     catch (err){
       if (attempt < maxRetries){ await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1200)); continue; }
       throw err;
     }
     if (resp.ok) return resp;
-
-    if (resp.status === 429){
-      if (!rateLimitRetried){
-        const retryAfterHeader = resp.headers && resp.headers.get ? resp.headers.get('retry-after') : null;
-        const retryAfterSec = retryAfterHeader ? parseFloat(retryAfterHeader) : NaN;
-        if (!isNaN(retryAfterSec) && retryAfterSec > 0){
-          rateLimitRetried = true;
-          await new Promise(r => setTimeout(r, retryAfterSec * 1000));
-          continue;
-        }
-      }
-      return resp;
-    }
-
-    if (RM_SERVER_ERROR_STATUSES.includes(resp.status) && attempt < maxRetries){
+    if (RM_RETRYABLE_STATUSES.includes(resp.status) && attempt < maxRetries){
       lastResp = resp;
       await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1200));
       continue;
@@ -132,7 +44,10 @@ async function fetchWithRetry(fetchFn, maxRetries, governorMeta){
    斷」。因此在真正送出前，統一夾住（clamp）在各供應商已知安全上限
    之內，同時仍盡量給到最大可用值，兩者兼顧。
 ========================================================= */
-const RM_MAX_TOKENS_CAP = { claude: 16000, gemini: 16000, chatgpt: 16000, agnes: 16000, builtin: 8000 };
+const RM_MAX_TOKENS_CAP = {
+  claude:16000, gemini:16000, chatgpt:16000, agnes:16000,
+  nvidia:4096, groq:16384, openrouter:16000, mistral:16000, builtin:8000
+};
 function clampMaxTokens(provider, requested){
   const cap = RM_MAX_TOKENS_CAP[provider] || 8000;
   const value = requested || 1200;
@@ -190,11 +105,11 @@ async function fetchClaudeText(systemPrompt, userContent, maxTokens, key){
       messages: [{ role: 'user', content: userContent }]
     })
   });
-  const resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
+  const resp = await fetchWithRetry(doFetch, 2);
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
     if (resp.status === 401) throw new Error('auth_error:Claude API Key 無效或已過期，請重新確認金鑰');
-    if (resp.status === 429) throw new Error('rate_limit:Claude API 額度或頻率已達上限，請稍待片刻再試（短時間內連續重試可能會讓限制更難恢復）');
+    if (resp.status === 429) throw new Error('rate_limit:Claude API 額度已達上限，已自動重試但仍失敗，請稍後再試');
     if (resp.status === 503) throw new Error('overloaded:Claude 伺服器目前負載過高（503），已自動重試但仍無法回應，請稍後再試');
     throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 200));
   }
@@ -209,218 +124,88 @@ async function fetchClaudeText(systemPrompt, userContent, maxTokens, key){
 
 /* ---------------- Gemini (Google AI Studio) ---------------- */
 async function fetchGeminiText(systemPrompt, userContent, maxTokens, key){
-  const doFetch = () => fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(getModelFor('gemini')) + ':generateContent', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-    body: JSON.stringify({
-      contents: [{ role: 'user', parts: [{ text: userContent }] }],
-      systemInstruction: { parts: [{ text: systemPrompt }] },
-      generationConfig: { maxOutputTokens: clampMaxTokens('gemini', maxTokens) }
+  const base=getBaseUrlFor('gemini');
+  const model=getModelFor('gemini');
+  const doFetch=()=>fetch(base+'/models/'+encodeURIComponent(model)+':generateContent',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-goog-api-key':key},
+    body:JSON.stringify({
+      contents:[{role:'user',parts:[{text:userContent}]}],
+      systemInstruction:{parts:[{text:systemPrompt}]},
+      generationConfig:{maxOutputTokens:clampMaxTokens('gemini',maxTokens)}
     })
   });
   let resp;
-  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
-  catch (networkErr){ throw new Error('cors_or_network:Gemini API 連線失敗，最常見原因是瀏覽器跨來源請求（CORS）被阻擋，建議改用其他供應商。'); }
-  if (!resp.ok){
-    const errText = await resp.text().catch(() => '');
-    if (resp.status === 401 || resp.status === 403) throw new Error('auth_error:Gemini API Key 無效、未啟用或權限不足，請至 aistudio.google.com/apikey 確認');
-    if (resp.status === 429) throw new Error('rate_limit:Gemini API 額度或頻率已達上限，請稍待片刻再試（短時間內連續重試可能會讓限制更難恢復）');
-    if (resp.status === 503) throw new Error('overloaded:Gemini 模型目前負載過高（503），已自動重試但仍無法回應，請稍後再試或改用其他供應商');
-    throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 200));
+  try{ resp=await fetchWithRetry(doFetch,2); }
+  catch(networkErr){ throw new Error('cors_or_network:Gemini API 連線失敗（可能是 CORS/DNS），請確認 Base URL、API Key 與 Model ID。'); }
+  if(!resp.ok){
+    const errText=await resp.text().catch(()=> '');
+    if(resp.status===401||resp.status===403) throw new Error('auth_error:Gemini API Key 無效、未啟用或權限不足，請確認原廠設定');
+    if(resp.status===429) throw new Error('rate_limit:Gemini API 額度已達上限，已自動重試但仍失敗，請稍後再試');
+    if(resp.status===503) throw new Error('overloaded:Gemini 模型目前負載過高（503），已自動重試但仍無法回應，請稍後再試');
+    throw new Error('api_error:'+resp.status+'：'+errText.slice(0,300));
   }
-  const data = await resp.json();
-  const candidate = data.candidates && data.candidates[0];
-  const parts = (candidate && candidate.content && candidate.content.parts) || [];
-  const text = parts.filter(p => p.text).map(p => p.text).join('');
-  const finishReason = candidate && candidate.finishReason;
-  if (!text){
-    if (finishReason && finishReason !== 'STOP') throw new Error('empty_response:Gemini 回應被中斷（finishReason: ' + finishReason + '），可能是輸出超過長度限制，請稍後再試');
+  const data=await resp.json();
+  const candidate=data.candidates&&data.candidates[0];
+  const parts=(candidate&&candidate.content&&candidate.content.parts)||[];
+  const text=parts.filter(x=>x.text).map(x=>x.text).join('');
+  const finishReason=candidate&&candidate.finishReason;
+  if(!text){
+    if(finishReason&&finishReason!=='STOP') throw new Error('empty_response:Gemini 回應被中斷（finishReason: '+finishReason+'）');
     throw new Error('empty_response:Gemini 回應中沒有文字內容');
   }
-  const usageMeta = data.usageMetadata;
-  const tokensUsed = usageMeta ? Number(usageMeta.totalTokenCount || 0) : estimateTokensFallback(systemPrompt + userContent, text);
-  return { text, truncated: finishReason === 'MAX_TOKENS', tokensUsed, tokensExact: !!usageMeta };
+  const usageMeta=data.usageMetadata;
+  const tokensUsed=usageMeta?Number(usageMeta.totalTokenCount||0):estimateTokensFallback(systemPrompt+userContent,text);
+  return {text,truncated:finishReason==='MAX_TOKENS',tokensUsed,tokensExact:!!usageMeta};
 }
 
 /* ---------------- ChatGPT (OpenAI) ---------------- */
-async function fetchChatGPTText(systemPrompt, userContent, maxTokens, key){
-  const doFetch = () => fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + key
-    },
-    body: JSON.stringify({
-      model: getModelFor('chatgpt'),
-      max_tokens: clampMaxTokens('chatgpt', maxTokens),
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent }
-      ]
-    })
-  });
-  let resp;
-  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
-  catch (networkErr){ throw new Error('cors_or_network:ChatGPT (OpenAI) API 連線失敗，可能是瀏覽器跨來源請求（CORS）被阻擋，建議改用其他供應商。'); }
-  if (!resp.ok){
-    const errText = await resp.text().catch(() => '');
-    if (resp.status === 401) throw new Error('auth_error:OpenAI API Key 無效或已過期，請重新確認金鑰');
-    if (resp.status === 429) throw new Error('rate_limit:OpenAI API 額度或頻率已達上限，請稍待片刻再試（短時間內連續重試可能會讓限制更難恢復）');
-    if (resp.status === 503) throw new Error('overloaded:OpenAI 伺服器目前負載過高（503），已自動重試但仍無法回應，請稍後再試');
-    throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 200));
-  }
-  const data = await resp.json();
-  const choice = data.choices && data.choices[0];
-  const text = choice && choice.message && choice.message.content;
-  if (!text){
-    if (choice && choice.finish_reason === 'length') throw new Error('empty_response:ChatGPT 回應被截斷（finish_reason: length，輸出超過長度限制），請稍後再試或增加長度上限');
-    throw new Error('empty_response:ChatGPT 回應中沒有文字內容');
-  }
-  const usage = data.usage;
-  const tokensUsed = usage ? Number(usage.total_tokens || 0) : estimateTokensFallback(systemPrompt + userContent, text);
-  return { text, truncated: choice && choice.finish_reason === 'length', tokensUsed, tokensExact: !!usage };
-}
-
-/* ---------------- Agnes AI（OpenAI 相容端點） ----------------
-   v3.3.78 修復、v3.3.79 修正：
-   原本瀏覽器直接對 apihub.agnes-ai.com 發送跨來源請求，只要對方沒有為瀏覽器
-   開放 CORS（或使用者當下網路對該網域 DNS／連線不穩），fetch() 會在收到任何
-   HTTP 回應之前就直接拋出例外，被歸類成語意含糊的 cors_or_network 錯誤。
-   v3.3.78 當時改成「一律」透過站內 Netlify Function（/.netlify/functions/
-   ai-proxy）轉發，結果變成只有部署在 Netlify（或跑 `netlify dev`）時才能
-   用——直接用瀏覽器打開本機檔案（file:// 開 index.html）完全沒有伺服器可以
-   接住這個相對路徑，反而 100% 失敗，這是回歸（regression），把原本「本機
-   file:// 也能用」的使用情境弄壞了。
-   v3.3.79 改成「雙軌＋自動備援」：
-   1. 一律先試瀏覽器直連 Agnes AI（跟原本 v3.3.77 以前的行為一樣）——這樣
-      不管是 file:// 本機開啟、netlify dev、還是正式部署，只要 Agnes AI
-      當下真的有開放 CORS，就跟以前一樣直接可用，不因為多繞一手代理而變慢。
-   2. 只有在直連失敗，且目前是透過 http/https 開啟本站（代表有伺服器可以
-      接住 /.netlify/functions/ai-proxy，不論是正式部署或本機
-      `netlify dev`）時，才自動改用站內 proxy 重新發送一次，繞過 CORS／
-      該網域在使用者所在地區的 DNS 問題。
-   3. 若目前是用 file:// 直接開啟本機檔案（沒有任何伺服器、proxy 注定打不
-      到），就不會浪費時間去打一定失敗的 proxy 路徑，直接回報直連失敗的原因，
-      並在錯誤訊息裡提醒可改用 `netlify dev` 或正式部署以啟用自動備援。 */
-async function fetchAgnesText(systemPrompt, userContent, maxTokens, key){
-  const baseUrl = getBaseUrlFor('agnes').replace(/\/+$/, '');
-  const payload = {
-    model: getModelFor('agnes'),
-    max_tokens: clampMaxTokens('agnes', maxTokens),
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userContent }
-    ]
-  };
-  const doDirectFetch = () => fetch(baseUrl + '/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify(payload)
-  });
-  const doProxyFetch = () => fetch('/.netlify/functions/ai-proxy', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ baseUrl, path: '/chat/completions', apiKey: key, payload })
-  });
-  // 只有透過 http(s) 開啟本站（正式部署或 `netlify dev`）時，/.netlify/
-  // functions/ai-proxy 這個相對路徑才有機會被接住；file:// 本機開啟時完全
-  // 沒有伺服器存在，打了也注定失敗，直接跳過以免多浪費一輪逾時等待。
-  const canUseProxy = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
-
-  let resp;
-  try {
-    // 直連：CORS 被擋屬於「確定性」失敗（不是流量壅塞那種暫時性問題），重試
-    // 也不會變成功，所以這裡只嘗試 1 次，失敗就盡快改走 proxy 備援，
-    // 避免使用者多等好幾秒無意義的重試。
-    resp = await fetchWithRetry(doDirectFetch, 0, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
-  }
-  catch (directErr){
-    if (!canUseProxy){
-      throw new Error('cors_or_network:Agnes AI API 連線失敗（CORS 或 DNS 錯誤）。目前端點：' + baseUrl + '，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。（目前是用 file:// 直接開啟本機檔案，沒有伺服器可用，因此無法自動改走站內備援連線；若要啟用備援，請改用 `netlify dev` 執行或部署到 Netlify 後再測試。）'); }
-    try {
-      resp = await fetchWithRetry(doProxyFetch, 3, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
-    }
-    catch (proxyErr){
-      throw new Error('cors_or_network:Agnes AI API 連線失敗，瀏覽器直連與站內備援連線（/.netlify/functions/ai-proxy）皆已重試仍失敗。目前端點：' + baseUrl + '，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。');
-    }
-  }
-  if (!resp.ok){
-    const errText = await resp.text().catch(() => '');
-    if (resp.status === 401 || resp.status === 403) throw new Error('auth_error:Agnes AI API Key 無效或權限不足，請確認金鑰是否正確');
-    if (resp.status === 429) throw new Error('rate_limit:Agnes AI API 額度或頻率已達上限，請稍待片刻再試（短時間內連續重試可能會讓限制更難恢復）');
-    if (resp.status === 503) throw new Error('overloaded:Agnes AI 伺服器目前負載過高（503），已自動重試但仍無法回應，請稍後再試');
-    if (resp.status === 502){
-      // 這代表站內 proxy 有成功被呼叫到，但 Netlify 伺服器端也連不上
-      // Agnes AI（DNS／連線被拒／逾時）——不是瀏覽器 CORS 問題，通常意味著
-      // Base URL 錯誤或 Agnes AI 服務本身異常。
-      let detail = errText;
-      try {
-        const parsed = JSON.parse(errText);
-        if (parsed && parsed.error === 'upstream_unreachable'){
-          detail = '瀏覽器直連與伺服器端皆無法連線到 ' + baseUrl + '（' + (parsed.detail || '原因未知') + '）。這代表問題不是瀏覽器 CORS，而是 Base URL 錯誤或 Agnes AI 服務本身目前無法連線，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。';
-        }
-      } catch (e){}
-      throw new Error('cors_or_network:' + detail.slice(0, 300));
-    }
-    throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 200));
-  }
-  const data = await resp.json();
-  const choice = data.choices && data.choices[0];
-  const text = choice && choice.message && choice.message.content;
-  if (!text){
-    // 實測 Agnes AI 在輸出被截斷（超過 max_tokens）時，有時會回傳完全空白的
-    // content，而不是回傳「寫到一半」的內容，因此這裡明確區分「被截斷」與
-    // 「單純沒有內容」兩種情況，方便判斷是否該提高 maxTokens。
-    if (choice && choice.finish_reason === 'length') throw new Error('empty_response:Agnes AI 回應被截斷（finish_reason: length，輸出超過長度限制），請稍後再試或增加長度上限');
-    throw new Error('empty_response:Agnes AI 回應中沒有文字內容');
-  }
-  const usage = data.usage;
-  const tokensUsed = usage ? Number(usage.total_tokens || 0) : estimateTokensFallback(systemPrompt + userContent, text);
-  return { text, truncated: choice && choice.finish_reason === 'length', tokensUsed, tokensExact: !!usage };
-}
-
-/* ---------------- 新增 OpenAI 相容供應商：NVIDIA NIM / GroqCloud / OpenRouter / Mistral ----------------
-   這四家均採 OpenAI-compatible Chat Completions；模型與 Base URL 從 API Key 設定頁
-   讀取，不把免費模型名稱寫死。OpenRouter 可使用 openrouter/free，讓原廠自動選擇
-   當下可用的免費模型。 */
-async function fetchOpenAICompatibleProviderText(provider, systemPrompt, userContent, maxTokens, key){
-  const baseUrl = getBaseUrlFor(provider).replace(/\/+$/, '');
-  const model = getModelFor(provider);
-  if (!baseUrl || !model) throw new Error('config_error:' + (PROVIDER_LABEL[provider] || provider) + ' 缺少 Base URL 或模型 ID');
-  const doFetch = () => fetch(baseUrl + '/chat/completions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
+async function fetchOpenAICompatibleText(provider, systemPrompt, userContent, maxTokens, key){
+  const base=getBaseUrlFor(provider);
+  const model=getModelFor(provider);
+  const doFetch=()=>fetch(base+'/chat/completions',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({
       model,
-      max_tokens: clampMaxTokens(provider, maxTokens),
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent }
+      max_tokens:clampMaxTokens(provider,maxTokens),
+      messages:[
+        {role:'system',content:systemPrompt},
+        {role:'user',content:userContent}
       ]
     })
   });
   let resp;
-  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
-  catch (networkErr){ throw new Error('cors_or_network:' + (PROVIDER_LABEL[provider] || provider) + ' API 連線失敗，請確認 Base URL、CORS 與網路連線。'); }
-  if (!resp.ok){
-    const errText = await resp.text().catch(() => '');
-    if (resp.status === 401 || resp.status === 403) throw new Error('auth_error:' + (PROVIDER_LABEL[provider] || provider) + ' API Key 無效或權限不足');
-    if (resp.status === 429) throw new Error('rate_limit:' + (PROVIDER_LABEL[provider] || provider) + ' 額度或頻率已達上限，請稍待片刻再試');
-    if (resp.status === 503) throw new Error('overloaded:' + (PROVIDER_LABEL[provider] || provider) + ' 服務目前負載過高（503），已自動重試但仍無法回應');
-    throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 300));
+  try{ resp=await fetchWithRetry(doFetch,2); }
+  catch(networkErr){ throw new Error('cors_or_network:'+provider+' API 連線失敗（可能是 CORS/DNS），請確認 Base URL、API Key 與 Model ID。'); }
+  if(!resp.ok){
+    const errText=await resp.text().catch(()=> '');
+    if(resp.status===401||resp.status===403) throw new Error('auth_error:'+provider+' API Key 無效或權限不足');
+    if(resp.status===402) throw new Error('billing_error:'+provider+' 目前要求付費或額度不足；請確認原廠免費額度/方案');
+    if(resp.status===404) throw new Error('model_or_endpoint_error:'+provider+' 找不到 Base URL 或 Model ID，請從原廠模型清單重新選擇');
+    if(resp.status===429) throw new Error('rate_limit:'+provider+' 額度/速率限制已達上限，已自動重試但仍失敗');
+    if(resp.status===503) throw new Error('overloaded:'+provider+' 伺服器目前負載過高（503），已自動重試但仍無法回應');
+    throw new Error('api_error:'+provider+':'+resp.status+'：'+errText.slice(0,300));
   }
-  const data = await resp.json();
-  const choice = data.choices && data.choices[0];
-  const text = choice && choice.message && choice.message.content;
-  if (!text){
-    if (choice && (choice.finish_reason === 'length' || choice.finish_reason === 'max_tokens'))
-      throw new Error('empty_response:' + (PROVIDER_LABEL[provider] || provider) + ' 回應被截斷（輸出超過長度限制）');
-    throw new Error('empty_response:' + (PROVIDER_LABEL[provider] || provider) + ' 回應中沒有文字內容');
+  const data=await resp.json();
+  const choice=data.choices&&data.choices[0];
+  const text=choice&&choice.message&&choice.message.content;
+  if(!text){
+    if(choice&&choice.finish_reason==='length') throw new Error('empty_response:'+provider+' 回應被截斷（finish_reason: length）');
+    throw new Error('empty_response:'+provider+' 回應中沒有文字內容');
   }
-  const usage = data.usage;
-  const tokensUsed = usage ? Number(usage.total_tokens || 0) : estimateTokensFallback(systemPrompt + userContent, text);
-  return { text, truncated: choice.finish_reason === 'length' || choice.finish_reason === 'max_tokens', tokensUsed, tokensExact: !!usage };
+  const usage=data.usage;
+  const tokensUsed=usage?Number(usage.total_tokens||((usage.prompt_tokens||0)+(usage.completion_tokens||0))):estimateTokensFallback(systemPrompt+userContent,text);
+  return {text,truncated:choice&&choice.finish_reason==='length',tokensUsed,tokensExact:!!usage};
 }
+
+/* ---------------- ChatGPT / Agnes / NVIDIA NIM / Groq / OpenRouter / Mistral ---------------- */
+async function fetchChatGPTText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('chatgpt',systemPrompt,userContent,maxTokens,key); }
+async function fetchAgnesText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('agnes',systemPrompt,userContent,maxTokens,key); }
+async function fetchNvidiaText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('nvidia',systemPrompt,userContent,maxTokens,key); }
+async function fetchGroqText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('groq',systemPrompt,userContent,maxTokens,key); }
+async function fetchOpenRouterText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('openrouter',systemPrompt,userContent,maxTokens,key); }
+async function fetchMistralText(systemPrompt,userContent,maxTokens,key){ return fetchOpenAICompatibleText('mistral',systemPrompt,userContent,maxTokens,key); }
 
 /* =========================================================
    v3.0.99：新增「階段耗時歷史紀錄」與「用量附加資訊」，供「一鍵產生全部
@@ -462,38 +247,21 @@ function estimateStageDuration(label){
 async function callClaude(systemPrompt, userContent, maxTokens, opts){
   const label = opts && opts.label;
   const startedAt = Date.now();
-  const requestedTokens = Math.max(256, Number(maxTokens || 1200));
-  const estimatedInputTokens = RM_GOVERNOR.estimate(String(systemPrompt || '') + String(userContent || ''));
-  const safeOutputTokens = Math.max(256, Math.min(requestedTokens, RM_GOVERNOR.tpm - estimatedInputTokens));
-  if (safeOutputTokens < 256) throw new Error('rate_limit:本次輸入內容太長，無法在 19,000 TPM 安全線內保留最小輸出空間，請縮短履歷或職缺文字。');
-  window.__RM_CURRENT_RESERVATION_TOKENS = estimatedInputTokens + safeOutputTokens;
-  maxTokens = safeOutputTokens;
-  /* v3.3.65 修復：原本是「先呼叫、成功後才記錄用了哪個供應商」（例如
-     `result = await fetchAgnesText(...); usedProvider = 'agnes';` 兩件事寫在同一行）。
-     只要 await 那段丟出例外（例如 Agnes 被限流），後面那行賦值根本沒機會執行，
-     usedProvider 就會停留在一開始初始化的 'builtin'，導致除錯紀錄／錯誤訊息裡
-     出現「provider:builtin」但訊息內容卻寫著「Agnes AI」這種自相矛盾的組合——
-     並不是系統真的跑去呼叫內建連線，只是記錄用的變數沒有跟著更新。改成「先決定
-     要呼叫誰、把 usedProvider 設好，再真的發送請求」，記錄一律準確反映實際呼叫
-     的是哪一個供應商，不論成功或失敗。 */
-  let result = null;
-  const provider = getProvider();
-  const key = provider ? getKeyFor(provider) : '';
-  const usedProvider = (key && (provider === 'claude' || provider === 'gemini' || provider === 'chatgpt' || provider === 'agnes' || provider === 'nvidia' || provider === 'groq' || provider === 'openrouter' || provider === 'mistral'))
-    ? provider
-    : 'builtin';
+  let result = null, usedProvider = 'builtin';
   try {
-    if (usedProvider === 'claude'){ result = await fetchClaudeText(systemPrompt, userContent, maxTokens, key); }
-    else if (usedProvider === 'gemini'){ result = await fetchGeminiText(systemPrompt, userContent, maxTokens, key); }
-    else if (usedProvider === 'chatgpt'){ result = await fetchChatGPTText(systemPrompt, userContent, maxTokens, key); }
-    else if (usedProvider === 'agnes'){ result = await fetchAgnesText(systemPrompt, userContent, maxTokens, key); }
-    else if (usedProvider === 'nvidia' || usedProvider === 'groq' || usedProvider === 'openrouter' || usedProvider === 'mistral'){
-      result = await fetchOpenAICompatibleProviderText(usedProvider, systemPrompt, userContent, maxTokens, key);
-    }
-    else { result = await fetchClaudeBuiltInText(systemPrompt, userContent, maxTokens); }
+    const provider = getProvider();
+    const key = provider ? getKeyFor(provider) : '';
+    if (key && provider === 'claude'){ result = await fetchClaudeText(systemPrompt, userContent, maxTokens, key); usedProvider = 'claude'; }
+    else if (key && provider === 'gemini'){ result = await fetchGeminiText(systemPrompt, userContent, maxTokens, key); usedProvider = 'gemini'; }
+    else if (key && provider === 'chatgpt'){ result = await fetchChatGPTText(systemPrompt, userContent, maxTokens, key); usedProvider = 'chatgpt'; }
+    else if (key && provider === 'agnes'){ result = await fetchAgnesText(systemPrompt, userContent, maxTokens, key); usedProvider = 'agnes'; }
+    else if (key && provider === 'nvidia'){ result = await fetchNvidiaText(systemPrompt, userContent, maxTokens, key); usedProvider = 'nvidia'; }
+    else if (key && provider === 'groq'){ result = await fetchGroqText(systemPrompt, userContent, maxTokens, key); usedProvider = 'groq'; }
+    else if (key && provider === 'openrouter'){ result = await fetchOpenRouterText(systemPrompt, userContent, maxTokens, key); usedProvider = 'openrouter'; }
+    else if (key && provider === 'mistral'){ result = await fetchMistralText(systemPrompt, userContent, maxTokens, key); usedProvider = 'mistral'; }
+    else { result = await fetchClaudeBuiltInText(systemPrompt, userContent, maxTokens); usedProvider = 'builtin'; }
 
     const rawText = result.text;
-    window.__RM_CURRENT_RESERVATION_TOKENS = 1;
     try {
       const parsed = parseJsonLoose(rawText);
       const durationMs = Date.now() - startedAt;
@@ -513,7 +281,6 @@ async function callClaude(systemPrompt, userContent, maxTokens, opts){
       throw parseErr;
     }
   } catch (err){
-    window.__RM_CURRENT_RESERVATION_TOKENS = 1;
     addDebugLog({ type: 'error', provider: usedProvider, label, message: String(err && err.message || err), name: err && err.name, durationMs: Date.now() - startedAt });
     throw err;
   }

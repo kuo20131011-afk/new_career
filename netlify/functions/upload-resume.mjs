@@ -67,53 +67,24 @@ export default async (req, context) => {
   const email = verified ? user.email : '(未登入或身分不明)';
   const name = verified ? extractName(user) : '';
 
-  let filename = '';
-  let buffer;
+  let body;
   try {
-    const contentType = (req.headers.get('content-type') || '').toLowerCase();
-
-    // v3.3.69：不要在 Netlify Function 內自行解析 multipart/form-data。
-    // Netlify 現代 Request API 可以直接把原始 request body 讀成 Blob；
-    // 這比 formData() 在 serverless runtime 中更穩定，也避免 multipart parser
-    // 在不同 runtime / deployment 版本造成「前端已解析、後台備份失敗」。
-    if (contentType && !contentType.includes('application/json') && !contentType.includes('text/plain')) {
-      const blob = await req.blob();
-      if (!blob || !blob.size) {
-        return new Response(JSON.stringify({ error: '缺少檔案內容' }), { status: 400 });
-      }
-      filename = String(
-        req.headers.get('x-resume-filename') ||
-        req.headers.get('x-file-name') ||
-        'resume.pdf'
-      );
-      buffer = Buffer.from(await blob.arrayBuffer());
-    } else {
-      // 相容舊版前端：仍接受 JSON + Base64。
-      const body = await req.json();
-      filename = String(body?.filename || '');
-      const base64 = body?.base64;
-      if (!filename || !base64) {
-        return new Response(JSON.stringify({ error: '缺少檔案內容' }), { status: 400 });
-      }
-      buffer = Buffer.from(base64, 'base64');
-    }
+    body = await req.json();
   } catch (e) {
-    console.error('解析履歷上傳內容失敗', e);
-    return new Response(JSON.stringify({ error: '請求格式錯誤或檔案無法讀取' }), { status: 400 });
+    return new Response(JSON.stringify({ error: '請求格式錯誤' }), { status: 400 });
   }
 
-  if (!filename || !buffer || !buffer.length) {
+  const { filename, base64 } = body || {};
+  if (!filename || !base64) {
     return new Response(JSON.stringify({ error: '缺少檔案內容' }), { status: 400 });
   }
-  // Netlify Functions 的 buffered request/response payload 上限為 6 MB，二進位請求在平台
-  // 層可能有 Base64 overhead；為避免接近平台上限造成難以判斷的失敗，這裡採 4 MB 安全上限。
-  if (buffer.length > 4 * 1024 * 1024) {
-    return new Response(JSON.stringify({ error: '檔案過大，請上傳 4 MB 以下的履歷檔案' }), { status: 413 });
+  // 粗略限制大小，避免異常大檔案塞爆 Blobs（base64 後約為原始檔案的 4/3 倍）
+  if (base64.length > 15 * 1024 * 1024) {
+    return new Response(JSON.stringify({ error: '檔案過大' }), { status: 413 });
   }
 
   // v3.3.43：無論是否驗證通過，都記錄請求端的診斷資訊，方便管理者比對「繞過登入」
   // 的上傳是從哪個 IP／瀏覽器／頁面（Referer）發出。
-  const anonymousId = req.headers.get('x-anonymous-id') || '';
   const ip =
     req.headers.get('x-nf-client-connection-ip') ||
     req.headers.get('x-forwarded-for') ||
@@ -129,10 +100,10 @@ export default async (req, context) => {
     // key——同一人／同一來源再次上傳會直接覆蓋掉自己前一份，而不是無限累加新的一筆。
     const key = verified
       ? `resume-verified-${sanitizeKeyPart(email.toLowerCase())}`
-      : `resume-anon-${sanitizeKeyPart(anonymousId || ip)}`;
-    const uploadTime = new Date().toISOString();
+      : `resume-anon-${sanitizeKeyPart(ip)}`;
+    const buffer = Buffer.from(base64, 'base64');
     await filesStore.set(key, buffer, {
-      metadata: { filename, email, name, verified, ip, browser, referer, time: uploadTime },
+      metadata: { filename, email, name, verified, ip, browser, referer },
     });
 
     const entry = {
@@ -144,7 +115,7 @@ export default async (req, context) => {
       ip,
       browser,
       referer,
-      time: uploadTime,
+      time: new Date().toISOString(),
       size: buffer.length,
     };
 

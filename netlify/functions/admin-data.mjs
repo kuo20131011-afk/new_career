@@ -58,41 +58,6 @@ export default async (req, context) => {
       if (Array.isArray(r)) resumes = r;
     } catch (e) {}
 
-    // v3.3.67：後台不再「只相信索引檔」。如果 PDF 已成功寫進 Netlify Blobs，
-    // 但索引在同一時間發生寫入衝突／暫時失敗，管理者仍然必須看得到這份檔案。
-    // 直接掃描履歷 Blob 的 key，再從 metadata 重建缺失的索引項目。
-    try {
-      const filesStore = getStore({ name: 'zhitou-resumes', consistency: 'strong' });
-      const listed = await filesStore.list({ prefix: 'resume-' });
-      const knownKeys = new Set(resumes.map(r => r.key));
-      for (const item of (listed.blobs || [])) {
-        if (knownKeys.has(item.key)) continue;
-        try {
-          const meta = await filesStore.getMetadata(item.key, { consistency: 'strong' });
-          if (!meta) continue;
-          const m = meta.metadata || {};
-          resumes.push({
-            key: item.key,
-            filename: m.filename || 'resume.pdf',
-            email: m.email || '(未登入或身分不明)',
-            name: m.name || '',
-            verified: m.verified !== false,
-            ip: m.ip || '',
-            browser: m.browser || '',
-            referer: m.referer || '',
-            time: m.time || null,
-            size: meta.size || 0,
-            recoveredFromBlob: true,
-          });
-        } catch (e) {
-          console.warn('重建履歷索引項目失敗', item.key, e);
-        }
-      }
-      resumes.sort((a, b) => String(b.time || '').localeCompare(String(a.time || '')));
-    } catch (e) {
-      console.warn('掃描履歷 Blob 失敗，仍回傳現有索引', e);
-    }
-
     return new Response(JSON.stringify({ logins, resumes }), {
       status: 200,
       headers: { 'content-type': 'application/json' },

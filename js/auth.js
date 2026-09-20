@@ -23,9 +23,6 @@
    刷新過的 Token 重試一次」的機制，避免未來遇到單純的 Token 過期時還要使用者手動
    登出再登入。 ---------- */
 const ADMIN_EMAIL = 'felix670131@gmail.com';
-// v3.3.70：完成 PDF／後台備份測試後恢復正式 Google 登入門檻。
-// 後端管理 API 仍維持 Netlify Identity 身份驗證。
-const DISABLE_GOOGLE_LOGIN_FOR_TEST = true;
 window.__zhitouCurrentUser = null;
 
 async function getIdentityToken(forceRefresh){
@@ -49,53 +46,27 @@ async function recordLoginEvent(){
 }
 
 async function uploadResumeToServer(file){
-  // v3.3.67：改用 multipart/form-data 直接傳送原始檔案，不再先轉 Base64。
-  // Base64 會讓檔案體積膨脹約 33%，較大的 PDF 容易在到達 Netlify Function 前就被
-  // request body 限制擋掉；而且原本這裡完全忽略 HTTP 錯誤，使用者看不到「後台備份失敗」。
+  // v3.3.43：不管有沒有登入都照樣送出上傳紀錄，讓後台可以看到「繞過登入牆」的異常上傳。
+  // 有 token 就照樣附上（讓後端能對到正確的使用者），沒有 token 也繼續送，後端會標記
+  // 為未驗證身份，而不是直接放棄記錄。
   const token = await getIdentityToken();
   try {
-    // v3.3.69：直接傳原始二進位檔案，不再使用 multipart/form-data。
-    // Netlify 現代 Functions Request API 可直接以 req.blob() 接收 request body，
-    // 可避開 multipart 在 serverless runtime 的解析差異。
-    const headers = {
-      'Content-Type': file.type || 'application/octet-stream',
-      'X-Resume-Filename': encodeURIComponent(file.name)
-    };
-    if (!token){
-      let anonId='';
-      try { anonId=localStorage.getItem('jobsight_anon_id') || ''; if(!anonId){ anonId=(crypto.randomUUID ? crypto.randomUUID() : ('anon-'+Date.now()+'-'+Math.random().toString(36).slice(2))); localStorage.setItem('jobsight_anon_id',anonId); } } catch(e){ anonId='anon-'+Date.now()+'-'+Math.random().toString(36).slice(2); }
-      headers['X-Anonymous-Id'] = anonId;
+    const buf = await file.arrayBuffer();
+    let binary = '';
+    const bytes = new Uint8Array(buf);
+    const chunk = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunk){
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
     }
+    const base64 = btoa(binary);
+    const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = 'Bearer ' + token;
-
-    const res = await fetch('/.netlify/functions/upload-resume', {
+    await fetch('/.netlify/functions/upload-resume', {
       method: 'POST',
       headers,
-      body: file
+      body: JSON.stringify({ filename: file.name, base64 })
     });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok || !data.ok){
-      throw new Error(data.error || `HTTP ${res.status}`);
-    }
-    console.info('履歷原始檔已備份至後台', data.key);
-    const status = document.getElementById('pdfStatus');
-    if (status && status.textContent.includes('後台備份失敗')) {
-      status.textContent = status.textContent.replace(/\s*[·・]?\s*⚠️ 後台備份失敗，請重新上傳一次/g, '');
-      status.classList.remove('err');
-      status.textContent += ' · 後台備份成功';
-    }
-    return true;
-  } catch (e) {
-    console.error('履歷存檔失敗', e);
-    // 原本「不影響本次分析使用」的原則保留，但現在要明確告知使用者：
-    // 本機解析成功 ≠ 後台原始 PDF 一定已備份成功。
-    const status = document.getElementById('pdfStatus');
-    if (status && status.textContent.indexOf('後台備份') === -1){
-      status.textContent += ' · ⚠️ 後台備份失敗，請重新上傳一次';
-      status.classList.add('err');
-    }
-    return false;
-  }
+  } catch (e) { console.error('履歷存檔失敗（不影響本次分析使用）', e); }
 }
 
 /* v3.3.22 修復：整個 Google 登入初始化區塊（以及底下每一個事件callback）現在都包在 try/catch 裡。
@@ -157,17 +128,6 @@ async function uploadResumeToServer(file){
   }
   function markLoginRecordedThisTab(){
     try { sessionStorage.setItem('zhitou_login_recorded', '1'); } catch (e){}
-  }
-
-  // v3.3.70：測試完成後正式恢復 Google Identity 初始化與登入牆。
-  // 後端 admin-data / admin-resume-file 的權限檢查維持不變。
-  if (DISABLE_GOOGLE_LOGIN_FOR_TEST) {
-    showApp(null);
-    if (gate) gate.style.display = 'none';
-    if (app) app.style.display = 'block';
-    if (loginBtn) loginBtn.disabled = true;
-    console.info('[JobSight] 測試模式：Google 登入門檻暫時關閉。後端管理 API 仍需有效身份驗證。');
-    return;
   }
 
   try {
