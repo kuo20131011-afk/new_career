@@ -30,17 +30,6 @@ function getModelFor(provider){ try{ return sessionStorage.getItem(RM_KEY_PREFIX
 function setModelFor(provider,v){ try{ sessionStorage.setItem(RM_KEY_PREFIX+'model_'+provider, v); }catch(e){} }
 function getBaseUrlFor(provider){ try{ return sessionStorage.getItem(RM_KEY_PREFIX+'baseurl_'+provider) || PROVIDER_DEFAULT_BASEURL[provider] || ''; }catch(e){ return PROVIDER_DEFAULT_BASEURL[provider] || ''; } }
 function setBaseUrlFor(provider,v){ try{ sessionStorage.setItem(RM_KEY_PREFIX+'baseurl_'+provider, v); }catch(e){} }
-
-function isValidGeminiKeyFormat(v){ return /^AIza|^AQ\./.test(v); }
-function validateProviderKey(p,v){
-  if(!v) return '請先貼上 API Key。';
-  if(p==='claude' && !v.startsWith('sk-ant-')) return 'Anthropic API Key 格式看起來不正確。';
-  if(p==='gemini' && !isValidGeminiKeyFormat(v)) return 'Google AI Studio API Key 格式看起來不正確。';
-  if(p==='chatgpt' && !v.startsWith('sk-')) return 'OpenAI API Key 格式看起來不正確。';
-  if(p==='groq' && !v.startsWith('gsk_')) return 'GroqCloud API Key 通常以 gsk_ 開頭，請確認。';
-  if(p==='openrouter' && !v.startsWith('sk-or-')) return 'OpenRouter API Key 通常以 sk-or- 開頭，請確認。';
-  return '';
-}
 function removeKeyFor(provider){ try{ sessionStorage.removeItem(RM_KEY_PREFIX+'key_'+provider); }catch(e){} }
 function isAiKeyMode(){ const p=getProvider(); return !!(p && getKeyFor(p)); }
 
@@ -101,8 +90,7 @@ function closeApiModal(){ document.getElementById('api-modal').classList.remove(
 function saveApiKey(){
   const p = currentProviderTab;
   const v = document.getElementById('api-key-input-' + p).value.trim();
-  const formatErr = validateProviderKey(p, v);
-  if (formatErr){ alert(formatErr); return; }
+  if (!v){ alert('請先貼上 API Key，或按「清除並改用系統內建」。'); return; }
   // 其他供應商同樣不限制金鑰格式；原廠格式可能隨時間變更。
   const modelEl = document.getElementById('api-model-input-' + p);
   const model = modelEl ? modelEl.value.trim() : '';
@@ -137,60 +125,3 @@ function clearApiKey(){
   closeApiModal();
 }
 
-
-
-/* v3.3.81：沿用 FairView 本機可用的 API Key 操作方式：
-   - 儲存後可立即測試目前供應商
-   - OpenAI-compatible 供應商可同步 /models
-   - Agnes 本機模式走 localhost proxy，避免瀏覽器 CORS；Base URL 由設定頁傳給 proxy
-*/
-async function testCurrentProvider(){
-  const p=currentProviderTab;
-  const key=(document.getElementById('api-key-input-'+p)?.value||getKeyFor(p)).trim();
-  const model=(document.getElementById('api-model-input-'+p)?.value||getModelFor(p)).trim();
-  if(!key || !model){ alert('請先填入 API Key 與 Model ID。'); return; }
-  const baseEl=document.getElementById('api-baseurl-'+p);
-  if(baseEl) setBaseUrlFor(p, baseEl.value.trim() || PROVIDER_DEFAULT_BASEURL[p] || '');
-  try{
-    const prompt='請只回覆 OK';
-    if(p==='gemini') await fetchGeminiText('',prompt,64,key);
-    else if(p==='claude') await fetchClaudeText('',prompt,64,key);
-    else if(p==='chatgpt') await fetchChatGPTText('',prompt,64,key);
-    else if(p==='agnes') await fetchAgnesText('',prompt,64,key);
-    else await fetchOpenAICompatibleProviderText(p,'',prompt,64,key);
-    alert('連線成功：'+(PROVIDER_LABEL[p]||p)+' / '+model);
-  }catch(e){
-    alert('連線測試失敗：\n'+String(e?.message||e));
-  }
-}
-
-async function fetchProviderModels(provider){
-  const key=(document.getElementById('api-key-input-'+provider)?.value||getKeyFor(provider)).trim();
-  if(!key){ alert('請先輸入該供應商 API Key。'); return; }
-  let base=(document.getElementById('api-baseurl-'+provider)?.value||getBaseUrlFor(provider)||'').trim().replace(/\/$/,'');
-  if(provider==='agnes' && !base) base='https://apihub.agnes-ai.com/v1';
-  if(!base){ alert('此供應商沒有可用的 Base URL。'); return; }
-  try{
-    let url=base+'/models', headers={};
-    if(provider==='gemini'){
-      url=base+'/models?key='+encodeURIComponent(key);
-    }else if(provider==='claude'){
-      headers={'x-api-key':key,'anthropic-version':'2023-06-01'};
-    }else if(provider==='agnes' && (/^(localhost|127\.0\.0\.1)$/i.test(location.hostname))){
-      url='/api/agnes/models';
-      headers={'X-Agnes-Api-Key':key,'X-Agnes-Base-Url':base};
-    }else{
-      headers={Authorization:'Bearer '+key};
-    }
-    const r=await fetch(url,{headers});
-    const text=await r.text();
-    let d={}; try{ d=JSON.parse(text); }catch(_){ }
-    if(!r.ok) throw new Error('HTTP '+r.status+'：'+(d?.error?.message||text.slice(0,240)));
-    const models=Array.isArray(d?.data)?d.data.map(x=>x?.id).filter(Boolean):[];
-    const field=document.getElementById('api-model-input-'+provider);
-    if(!models.length){ alert('原廠沒有回傳可用模型清單，請手動輸入 Model ID。'); return; }
-    const current=field?.value.trim();
-    if(field) field.value=current&&models.includes(current)?current:models[0];
-    alert('已同步 '+models.length+' 個模型。\n目前：'+(field?.value||models[0]));
-  }catch(e){ alert('模型同步失敗：\n'+String(e?.message||e)); }
-}

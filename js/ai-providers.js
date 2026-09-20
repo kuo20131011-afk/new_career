@@ -281,20 +281,29 @@ async function fetchChatGPTText(systemPrompt, userContent, maxTokens, key){
   return { text, truncated: choice && choice.finish_reason === 'length', tokensUsed, tokensExact: !!usage };
 }
 
-/* ---------------- Agnes AI（OpenAI 相容端點） ---------------- */
+/* ---------------- Agnes AI（OpenAI 相容端點） ----------------
+   v3.3.78 修復、v3.3.79 修正：
+   原本瀏覽器直接對 apihub.agnes-ai.com 發送跨來源請求，只要對方沒有為瀏覽器
+   開放 CORS（或使用者當下網路對該網域 DNS／連線不穩），fetch() 會在收到任何
+   HTTP 回應之前就直接拋出例外，被歸類成語意含糊的 cors_or_network 錯誤。
+   v3.3.78 當時改成「一律」透過站內 Netlify Function（/.netlify/functions/
+   ai-proxy）轉發，結果變成只有部署在 Netlify（或跑 `netlify dev`）時才能
+   用——直接用瀏覽器打開本機檔案（file:// 開 index.html）完全沒有伺服器可以
+   接住這個相對路徑，反而 100% 失敗，這是回歸（regression），把原本「本機
+   file:// 也能用」的使用情境弄壞了。
+   v3.3.79 改成「雙軌＋自動備援」：
+   1. 一律先試瀏覽器直連 Agnes AI（跟原本 v3.3.77 以前的行為一樣）——這樣
+      不管是 file:// 本機開啟、netlify dev、還是正式部署，只要 Agnes AI
+      當下真的有開放 CORS，就跟以前一樣直接可用，不因為多繞一手代理而變慢。
+   2. 只有在直連失敗，且目前是透過 http/https 開啟本站（代表有伺服器可以
+      接住 /.netlify/functions/ai-proxy，不論是正式部署或本機
+      `netlify dev`）時，才自動改用站內 proxy 重新發送一次，繞過 CORS／
+      該網域在使用者所在地區的 DNS 問題。
+   3. 若目前是用 file:// 直接開啟本機檔案（沒有任何伺服器、proxy 注定打不
+      到），就不會浪費時間去打一定失敗的 proxy 路徑，直接回報直連失敗的原因，
+      並在錯誤訊息裡提醒可改用 `netlify dev` 或正式部署以啟用自動備援。 */
 async function fetchAgnesText(systemPrompt, userContent, maxTokens, key){
-  // v3.3.79：不要讓瀏覽器直接跨來源呼叫 Agnes。
-  // 直接 fetch https://apihub.agnes-ai.com 在一般瀏覽器會受 CORS／DNS／網路環境影響，
-  // 即使 API Key 正確也可能在真正送出 HTTP 請求前就失敗。
-  // Netlify 部署後改走同源 Function，由 server-side 代理轉發至 Agnes。
-  // v3.3.80：同時支援 Netlify 與 Windows 本機使用。
-  // 本機透過 start-local.bat 啟動的 localhost proxy，避免 file:// 瀏覽器直接跨來源呼叫 Agnes。
-  const isLocalHost = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname || '');
-  const isFileMode = window.location.protocol === 'file:';
-  const proxyUrl = isFileMode
-    ? 'http://127.0.0.1:8787/api/agnes'
-    : (isLocalHost ? '/api/agnes' : '/.netlify/functions/agnes-chat');
-  const directBaseUrl = (getBaseUrlFor('agnes') || 'https://apihub.agnes-ai.com/v1').replace(/\/+$/, '');
+  const baseUrl = getBaseUrlFor('agnes').replace(/\/+$/, '');
   const payload = {
     model: getModelFor('agnes'),
     max_tokens: clampMaxTokens('agnes', maxTokens),
@@ -303,24 +312,56 @@ async function fetchAgnesText(systemPrompt, userContent, maxTokens, key){
       { role: 'user', content: userContent }
     ]
   };
-  const doFetch = () => fetch(proxyUrl, {
+  const doDirectFetch = () => fetch(baseUrl + '/chat/completions', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Agnes-Api-Key': key,
-      'X-Agnes-Base-Url': directBaseUrl
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
     body: JSON.stringify(payload)
   });
+  const doProxyFetch = () => fetch('/.netlify/functions/ai-proxy', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ baseUrl, path: '/chat/completions', apiKey: key, payload })
+  });
+  // 只有透過 http(s) 開啟本站（正式部署或 `netlify dev`）時，/.netlify/
+  // functions/ai-proxy 這個相對路徑才有機會被接住；file:// 本機開啟時完全
+  // 沒有伺服器存在，打了也注定失敗，直接跳過以免多浪費一輪逾時等待。
+  const canUseProxy = typeof location !== 'undefined' && /^https?:$/.test(location.protocol);
+
   let resp;
-  // Agnes AI 實測連線穩定度略低於 Claude／Gemini／OpenAI，重試次數加到 3 次（共 4 次嘗試）。
-  try { resp = await fetchWithRetry(doFetch, 3, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
-  catch (networkErr){ throw new Error('cors_or_network:Agnes AI 本機/代理連線失敗（已自動重試 3 次）。請確認 start-local.bat 已啟動；若主線路 DNS/TLS 無法連線，API 設定可改用 https://apihub.agnes-ai.cn/v1。當前 Base URL：' + directBaseUrl); }
+  try {
+    // 直連：CORS 被擋屬於「確定性」失敗（不是流量壅塞那種暫時性問題），重試
+    // 也不會變成功，所以這裡只嘗試 1 次，失敗就盡快改走 proxy 備援，
+    // 避免使用者多等好幾秒無意義的重試。
+    resp = await fetchWithRetry(doDirectFetch, 0, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
+  }
+  catch (directErr){
+    if (!canUseProxy){
+      throw new Error('cors_or_network:Agnes AI API 連線失敗（CORS 或 DNS 錯誤）。目前端點：' + baseUrl + '，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。（目前是用 file:// 直接開啟本機檔案，沒有伺服器可用，因此無法自動改走站內備援連線；若要啟用備援，請改用 `netlify dev` 執行或部署到 Netlify 後再測試。）'); }
+    try {
+      resp = await fetchWithRetry(doProxyFetch, 3, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
+    }
+    catch (proxyErr){
+      throw new Error('cors_or_network:Agnes AI API 連線失敗，瀏覽器直連與站內備援連線（/.netlify/functions/ai-proxy）皆已重試仍失敗。目前端點：' + baseUrl + '，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。');
+    }
+  }
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
     if (resp.status === 401 || resp.status === 403) throw new Error('auth_error:Agnes AI API Key 無效或權限不足，請確認金鑰是否正確');
     if (resp.status === 429) throw new Error('rate_limit:Agnes AI API 額度或頻率已達上限，請稍待片刻再試（短時間內連續重試可能會讓限制更難恢復）');
     if (resp.status === 503) throw new Error('overloaded:Agnes AI 伺服器目前負載過高（503），已自動重試但仍無法回應，請稍後再試');
+    if (resp.status === 502){
+      // 這代表站內 proxy 有成功被呼叫到，但 Netlify 伺服器端也連不上
+      // Agnes AI（DNS／連線被拒／逾時）——不是瀏覽器 CORS 問題，通常意味著
+      // Base URL 錯誤或 Agnes AI 服務本身異常。
+      let detail = errText;
+      try {
+        const parsed = JSON.parse(errText);
+        if (parsed && parsed.error === 'upstream_unreachable'){
+          detail = '瀏覽器直連與伺服器端皆無法連線到 ' + baseUrl + '（' + (parsed.detail || '原因未知') + '）。這代表問題不是瀏覽器 CORS，而是 Base URL 錯誤或 Agnes AI 服務本身目前無法連線，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。';
+        }
+      } catch (e){}
+      throw new Error('cors_or_network:' + detail.slice(0, 300));
+    }
     throw new Error('api_error:' + resp.status + '：' + errText.slice(0, 200));
   }
   const data = await resp.json();

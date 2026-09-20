@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>職透 JobSight v3.3.81</title>
+<title>職透 JobSight V3.3.79</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -139,46 +139,6 @@
   /* debug panel（v3.3.8：移到頁尾） */
   .debug-toggle-row{ margin-bottom:14px; text-align:center; }
   .footer-dev-info{ color:var(--ink-soft); }
-  /* v3.3.81：新版品牌頁尾／聯絡功能 */
-  .footer-brand{
-    margin:0 auto 10px;
-    font-family:'Manrope','Noto Sans TC',sans-serif;
-    font-size:13px;
-    color:var(--ink);
-    line-height:1.8;
-  }
-  .footer-brand .footer-brand-link{
-    color:var(--seal);
-    font-weight:800;
-    text-decoration:none;
-    border-bottom:1px solid transparent;
-    transition:color .15s ease,border-color .15s ease;
-  }
-  .footer-brand .footer-brand-link:hover{
-    color:var(--seal-dark);
-    border-bottom-color:currentColor;
-  }
-  .footer-tagline{ color:var(--ink-soft); margin-left:4px; }
-  .footer-contact{
-    display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
-    gap:6px 18px; margin:6px auto 0;
-  }
-  .footer-contact-label{ font-weight:700; color:var(--ink); }
-  .footer-contact a{ color:var(--seal); text-decoration:none; }
-  .footer-contact a:hover{ text-decoration:underline; }
-  .footer-line-btn{
-    border:0; background:transparent; padding:0; font:inherit; color:var(--seal);
-    cursor:pointer; text-decoration:none;
-  }
-  .footer-line-btn:hover{ text-decoration:underline; }
-  .line-qr-modal-box{
-    max-width:420px; text-align:center;
-  }
-  .line-qr-image{
-    display:block; width:min(280px,80vw); height:auto; margin:12px auto 14px;
-    border:1px solid var(--line); border-radius:12px; background:#fff; padding:10px;
-  }
-  .line-qr-hint{ margin:0; color:var(--ink-soft); font-size:12.5px; line-height:1.7; }
   /* v3.3.48：開發者聯絡方式跟「除錯模式」開關原本擠在同一行，兩者其實沒有關係
      （一個是意見回饋管道，一個是進階疑難排解工具），視覺上卻像是一組。改成各自
      獨立一行，中間加一條分隔線，讓頁尾收尾更乾淨、也不會讓人誤以為兩者相關。 */
@@ -990,7 +950,7 @@ header .eyebrow{color:var(--ws-blue);margin-bottom:5px;font-size:10px;}
 @media(max-width:900px){.workspace-current-guide{align-items:flex-start}.current-guide-next{display:none}}
 </style>
 <style id="sidebarWorkflowDesign">
-/* v3.3.81 — 單一路徑側邊欄：避免重複資訊，將操作變成單一路徑 */
+/* v3.3.73 — 單一路徑側邊欄：避免重複資訊，將操作變成單一路徑 */
 :root{--sb-navy:#12233F;--sb-blue:#2563EB;--sb-soft:#EEF4FF;--sb-border:#E5EAF2;--sb-text:#172033;--sb-muted:#667085;--sb-bg:#F6F8FB;}
 body{background:var(--sb-bg);padding:0 24px 80px;}
 .wrap{max-width:1240px;margin-left:285px;margin-right:auto;}
@@ -1139,7 +1099,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
   <header>
     <div>
       <div class="eyebrow">求職前，先看懂這份職缺</div>
-      <h1>職透<span class="version-badge">v3.3.81</span></h1>
+      <h1>職透<span class="version-badge">V3.3.79</span></h1>
     </div>
     <div class="header-right">
       <div class="header-api-row">
@@ -1399,16 +1359,8 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
   </div>
 
   <footer>
-    <div class="footer-brand">
-      © 2026 <a class="footer-brand-link" href="https://project0983487908.netlify.app" target="_blank" rel="noopener noreferrer" title="開啟澄思 AI Studio">澄思</a> AI Studio · LUCIDMIND AI STUDIO <span class="footer-tagline">· 重要的決定，不必一個人想。</span>
-    </div>
-    <div class="footer-contact">
-      <span class="footer-contact-label">聯絡方式</span>
-      <a href="https://mail.google.com/mail/?view=cm&fs=1&to=project0983487908@gmail.com&su=%E5%85%AC%E9%91%91%E5%BB%BA%E8%AD%B0%E5%92%8C%E9%9C%80%E6%B1%82" target="_blank" rel="noopener noreferrer" title="以 Gmail 撰寫新信件，主旨：公鑑建議和需求">信箱：project0983487908@gmail.com</a>
-      <button class="footer-line-btn" type="button" id="lineQrBtn" title="顯示 LINE 加好友 QR-CODE">Line：felix_line</button>
-    </div>
-    <div class="footer-dev-row" style="margin-top:10px;">
-      <span class="footer-dev-info">💬 開發者聯絡與建議入口</span>
+    <div class="footer-dev-row">
+      <span class="footer-dev-info">💬 開發者:游士賢　建議信箱:<a href="https://mail.google.com/mail/?view=cm&fs=1&to=felix670131@gmail.com&su=%E8%81%B7%E9%80%8F%E5%BB%BA%E8%AD%B0" target="_blank" rel="noopener noreferrer" style="color:inherit;">felix670131@gmail.com</a></span>
     </div>
     <div class="debug-toggle-row footer-debug-toggle">
       <button class="ghost" id="debugToggleBtn" type="button">除錯模式</button>
@@ -1425,18 +1377,6 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
       <pre id="debugLogContent">（目前沒有紀錄）</pre>
     </div>
   </footer>
-</div>
-
-<!-- ---------- LINE 加好友 QR-CODE ---------- -->
-<div class="modal-overlay" id="lineQrModal" style="display:none;" aria-hidden="true">
-  <div class="modal-box line-qr-modal-box" role="dialog" aria-modal="true" aria-labelledby="lineQrTitle">
-    <div class="modal-head">
-      <h3 id="lineQrTitle">加入 LINE 好友</h3>
-      <button class="modal-close" type="button" id="lineQrCloseBtn" aria-label="關閉">✕</button>
-    </div>
-    <img class="line-qr-image" src="assets/line-felix-qr.png" alt="LINE felix_line 加好友 QR-CODE">
-    <p class="line-qr-hint">請使用手機 LINE 掃描上方 QR-CODE 加入好友。<br>LINE ID：felix_line</p>
-  </div>
 </div>
 
 <!-- ---------- API Key 設定 Modal（Claude / Gemini / ChatGPT / Agnes AI / NVIDIA NIM / GroqCloud / OpenRouter / Mistral AI Studio） ---------- -->
@@ -1465,7 +1405,6 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         <label class="form-label">Anthropic API Key</label>
         <input id="api-key-input-claude" type="password" class="form-ctrl" placeholder="sk-ant-...">
         <p class="form-hint">API Key 依原廠文件取得；金鑰只暫存在本次瀏覽器分頁。</p>
-        <button class="secondary" type="button" onclick="fetchProviderModels('claude')">同步目前可用模型</button>
       </div>
       <div class="form-group">
         <label class="form-label">模型 ID（可自行修改）</label>
@@ -1477,7 +1416,6 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         <label class="form-label">Google AI Studio API Key</label>
         <input id="api-key-input-gemini" type="password" class="form-ctrl" placeholder="AIzaSy... 或 AQ.Ab8...">
         <p class="form-hint">Gemini 模型可依 Google AI Studio 最新可用模型自行修改。</p>
-        <button class="secondary" type="button" onclick="fetchProviderModels('gemini')">同步目前可用模型</button>
       </div>
       <div class="form-group">
         <label class="form-label">模型 ID（可自行修改）</label>
@@ -1489,7 +1427,6 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
         <label class="form-label">OpenAI API Key</label>
         <input id="api-key-input-chatgpt" type="password" class="form-ctrl" placeholder="sk-...">
         <p class="form-hint">OpenAI API 模型可依官方最新模型 ID 自行修改。</p>
-        <button class="secondary" type="button" onclick="fetchProviderModels('chatgpt')">同步目前可用模型</button>
       </div>
       <div class="form-group">
         <label class="form-label">模型 ID（可自行修改）</label>
@@ -1509,8 +1446,7 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
       <div class="form-group">
         <label class="form-label">Agnes AI Base URL（選填，預設使用官方端點）</label>
         <input id="api-baseurl-agnes" type="text" class="form-ctrl" placeholder="https://apihub.agnes-ai.com/v1">
-        <p class="form-hint">留空則使用官方預設端點 https://apihub.agnes-ai.com/v1（model: agnes-2.5-flash）。若主線路無法連線，可改用 https://apihub.agnes-ai.cn/v1。</p>
-        <button class="secondary" type="button" onclick="fetchProviderModels('agnes')">同步目前可用模型</button>
+        <p class="form-hint">留空則使用官方預設端點 https://apihub.agnes-ai.com/v1（model: agnes-2.5-flash）。</p>
       </div>
     </div>
 
@@ -1554,7 +1490,6 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
 
     <div class="modal-current-mode" id="modal-current-mode"></div>
     <div class="modal-foot">
-      <button class="secondary" type="button" onclick="testCurrentProvider()">測試目前供應商</button>
       <button class="secondary" type="button" onclick="clearApiKey()">清除並改用系統內建</button>
       <button class="primary" type="button" onclick="saveApiKey()">儲存並啟用</button>
     </div>
@@ -1589,21 +1524,5 @@ header{border-color:#DCE3EE}.workspace-intake{box-shadow:0 10px 30px rgba(20,33,
 <script src="js/tab-deck.js"></script>
 <script src="js/init.js"></script>
 <script src="js/workspace-ui.js"></script>
-<script>
-// v3.3.81：LINE 加好友 QR-CODE 視窗
-(function(){
-  const btn=document.getElementById('lineQrBtn');
-  const modal=document.getElementById('lineQrModal');
-  const closeBtn=document.getElementById('lineQrCloseBtn');
-  if(!btn || !modal || !closeBtn) return;
-  const open=()=>{ modal.style.display='flex'; modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); };
-  const close=()=>{ modal.classList.remove('open'); modal.style.display='none'; modal.setAttribute('aria-hidden','true'); };
-  btn.addEventListener('click',open);
-  closeBtn.addEventListener('click',close);
-  modal.addEventListener('click',(e)=>{ if(e.target===modal) close(); });
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && modal.classList.contains('open')) close(); });
-})();
-</script>
-
 </body>
 </html>

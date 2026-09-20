@@ -1,15 +1,47 @@
+# v3.3.79 更新（修正 v3.3.78 的回歸問題）
 
-## v3.3.81 Agnes AI 本機模式
-- 新增 Windows 本機啟動器 `start-local.bat`，不需要 Node.js、npm 或 Python。
-- 新增 `local-server.ps1`：提供靜態檔案服務與本機 `/api/agnes` Proxy。
-- 本機模式下 Agnes 不再由瀏覽器直接跨來源呼叫，改由 PowerShell server-side proxy 呼叫 `https://apihub.agnes-ai.com/v1/chat/completions`。
-- Netlify 模式維持 `/.netlify/functions/agnes-chat`，因此線上與本機皆可使用。
-- API Key 不寫入檔案或 log。
+- **問題**：v3.3.78 把 Agnes AI 呼叫改成一律透過站內 Netlify Function
+  （`/.netlify/functions/ai-proxy`）轉發，結果變成只有部署在 Netlify（或
+  跑 `netlify dev`）才能用——用瀏覽器直接開啟本機檔案（`file://.../
+  index.html`）時完全沒有伺服器可以接住這個相對路徑，反而 100% 失敗。這
+  把原本「本機直接雙擊開啟也能用」的使用情境弄壞了，屬於回歸（regression）。
+- **修法（雙軌＋自動備援）**：
+  1. 一律先嘗試瀏覽器直連 Agnes AI（跟 v3.3.77 以前的行為一樣）。只要
+     Agnes AI 當下真的有開放 CORS，不論是 `file://` 本機開啟、
+     `netlify dev`、還是正式部署，都跟以前一樣直接可用，不會因為多繞一手
+     代理而變慢。
+  2. 只有在直連失敗，且目前是透過 `http`／`https` 開啟本站（代表有伺服器
+     可以接住 proxy，不論是正式部署或本機 `netlify dev`）時，才自動改用
+     站內 `ai-proxy` 重新發送一次，繞過 CORS 或該網域在使用者所在地區的
+     DNS 問題。
+  3. 若目前是用 `file://` 直接開啟本機檔案，就不會浪費時間打一定失敗的
+     proxy 路徑，直接回報直連失敗的原因，並在錯誤訊息裡提醒可改用
+     `netlify dev` 或部署到 Netlify 以啟用自動備援。
+- 結果：**本機直接雙擊開啟**與**部署到 Netlify** 兩種情境都能正常運作；
+  只有在「直連被 CORS／DNS 擋下、且沒有任何伺服器可用」（也就是純 `file://`
+  本機開啟＋對方剛好不開放 CORS）這種情況下才會真的無法使用，此時請改用
+  `netlify dev` 本機測試或直接部署後測試。
 
-## v3.3.79 頁尾聯絡功能
-- 「澄思」連結會以新分頁開啟 LUCIDMIND AI STUDIO 專案網站。
-- 信箱連結會開啟 Gmail 撰寫視窗，收件者為 project0983487908@gmail.com，主旨為「公鑑建議和需求」。
-- LINE 連結會開啟內建 QR-CODE 視窗，供手機掃描加入 `felix_line`。
+# v3.3.78 更新
+
+- 修正 Agnes AI 一直出現 `cors_or_network`（CORS 或 DNS 錯誤）導致 healthcheck／
+  match／interviewSetup 全部失敗的問題。
+- 根本原因：瀏覽器原本直接對 `https://apihub.agnes-ai.com/v1` 發送跨來源
+  請求；只要該網域沒有為瀏覽器開放 CORS，或使用者當下網路對該網域
+  DNS／連線不穩，`fetch()` 會在收到任何 HTTP 回應之前就直接拋出例外，
+  完全無法分辨「CORS 被擋」和「真的打不通」。
+- 修法：新增 `netlify/functions/ai-proxy.mjs`，Agnes AI 呼叫改成先打
+  站內的 `/.netlify/functions/ai-proxy`，再由 Netlify 伺服器端代為對
+  Agnes AI 發出請求。伺服器對伺服器完全不受瀏覽器 CORS 政策限制，也不受
+  使用者端網路狀況影響。
+- 若伺服器端也連不到 Agnes AI（真正的 DNS／連線問題，而非 CORS），會回傳
+  502 並附上明確原因，不再跟 CORS 錯誤混在一起。
+- 既有的 401/403/429/503 狀態碼判斷邏輯完全不需更動（proxy 會原封不動轉送
+  第三方的狀態碼與內容）。
+- **部署注意**：此修復需要重新部署到 Netlify（或執行 `netlify dev`）才會
+  生效，因為新增了一支 serverless function；純粹重新整理瀏覽器頁面不會有
+  效果。
+
 # v3.3.77 更新
 
 - 修正左側求職流程選單被深色 Variant 與 enterprise 樣式覆蓋，導致整體看起來全黑／色彩錯誤。
@@ -933,13 +965,3 @@ netlify/functions/admin-resume-file.mjs   ← 後台下載／刪除單一份履�
 - 主畫面改為單一「現在只做這一步」提示。
 - 左側 01–06 顯示目前／已完成／待開始狀態。
 - 保留既有 AI、PDF、Google 登入與所有功能 ID，不更動後端流程。
-
-## v3.3.79 Agnes AI 連線修復
-- 瀏覽器不再直接呼叫 `https://apihub.agnes-ai.com/v1`，避免一般瀏覽器的 CORS／DNS／網路環境造成 API Key 正確仍無法連線。
-- 新增 `/.netlify/functions/agnes-chat` 同源 Netlify server-side proxy。
-- Agnes API Key 只以 `X-Agnes-Api-Key` 請求標頭短暫轉發，不寫入 Netlify Blobs、環境變數或程式碼。
-- 上游仍使用官方 OpenAI-compatible `POST /v1/chat/completions`，模型預設 `agnes-2.5-flash`。
-- 若直接以 `file://` 開啟 `index.html`，Agnes 無法使用這個 server-side proxy；請部署到 Netlify 後再測試。
-
-
-v3.3.81 修正：本機 API Key 設定模組加入供應商格式檢查、立即測試、模型同步；Agnes 本機 Proxy 支援自訂 Base URL、TLS 1.2 與國際備援路由。
