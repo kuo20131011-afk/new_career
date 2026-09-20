@@ -29,12 +29,71 @@
    不知情的狀況下，一次呼叫就偷偷幫他多打好幾發請求去撞同一道限流牆。 */
 const RM_SERVER_ERROR_STATUSES = [502, 503, 504];
 
-async function fetchWithRetry(fetchFn, maxRetries){
+/* v3.3.76：集中式 AI Request Governor
+   目的不是繞過供應商限制，而是在瀏覽器端主動排隊、預留與計算請求額度，
+   讓單一瀏覽器／多分頁盡量維持在使用者設定的安全線以下。
+   安全線採「小於」：RPM 14、RPD 49、TPM 19,000。
+   注意：瀏覽器無法對多台裝置／多個瀏覽器的同一 API 專案做全域硬保證；若要硬保證，
+   必須把 API 呼叫移到有集中狀態的 server-side proxy。這裡不做 key rotation 或其他規避限流。
+*/
+const RM_GOVERNOR = {
+  rpm: 14, rpd: 49, tpm: 19000,
+  storageKey: 'jobsight_ai_governor_v376',
+  channel: null,
+  state(){
+    try { return JSON.parse(localStorage.getItem(this.storageKey) || '{"requests":[],"tokens":[]}'); }
+    catch(e){ return {requests:[],tokens:[]}; }
+  },
+  save(st){ try { localStorage.setItem(this.storageKey, JSON.stringify(st)); } catch(e){} try{ this.channel?.postMessage({type:'sync'}); }catch(e){} },
+  prune(st, now){
+    st.requests=(st.requests||[]).filter(t=>now-t<86400000);
+    st.tokens=(st.tokens||[]).filter(x=>now-x.t<60000);
+    return st;
+  },
+  init(){ try{ this.channel=new BroadcastChannel('jobsight_ai_governor'); }catch(e){} },
+  estimate(text){ return Math.max(1, Math.ceil(String(text||'').length/2)); },
+  async waitForBudget(tokenReservation){
+    const need=Math.max(1,Math.ceil(tokenReservation||1));
+    if(need>=this.tpm) throw new Error('rate_limit:本次 AI 輸入內容本身已接近或超過 19,000 TPM 安全線，為避免撞到供應商限制，請縮短履歷／職缺文字後再試。');
+    for(;;){
+      const now=Date.now(); let st=this.prune(this.state(),now);
+      const req60=st.requests.filter(t=>now-t<60000).length;
+      const reqDay=st.requests.length;
+      const tok60=st.tokens.reduce((sum,x)=>sum+x.n,0);
+      let wait=0;
+      if(req60>=this.rpm) wait=Math.max(wait,60000-(now-Math.min(...st.requests.filter(t=>now-t<60000))));
+      if(reqDay>=this.rpd){ const first=st.requests[0]; wait=Math.max(wait,86400000-(now-first)); }
+      if(tok60+need>this.tpm){
+        const sorted=st.tokens.filter(x=>now-x.t<60000).sort((a,b)=>a.t-b.t);
+        let running=tok60;
+        for(const x of sorted){ running-=x.n; if(running+need<=this.tpm){ wait=Math.max(wait,60000-(now-x.t)); break; } }
+        if(running+need>this.tpm && sorted.length) wait=Math.max(wait,60000-(now-sorted[sorted.length-1].t));
+      }
+      if(wait<=0){
+        st.requests.push(now); st.tokens.push({t:now,n:need}); this.save(st);
+        return;
+      }
+      const seconds=Math.ceil(wait/1000);
+      throw Object.assign(new Error('rate_queue:AI 請求已排隊，為避免超過安全額度，請約 '+seconds+' 秒後再試。'),{code:'RATE_QUEUE',waitMs:wait});
+    }
+  },
+  chargeActual(extraTokens){
+    const n=Math.max(0,Math.ceil(Number(extraTokens)||0)); if(!n) return;
+    const now=Date.now(); const st=this.prune(this.state(),now); st.tokens.push({t:now,n}); this.save(st);
+  }
+};
+RM_GOVERNOR.init();
+
+
+async function fetchWithRetry(fetchFn, maxRetries, governorMeta){
   let lastResp = null;
   let rateLimitRetried = false;
   for (let attempt = 0; attempt <= maxRetries; attempt++){
     let resp;
-    try { resp = await fetchFn(); }
+    try {
+      if (governorMeta && governorMeta.reserve) await RM_GOVERNOR.waitForBudget(governorMeta.tokens);
+      resp = await fetchFn();
+    }
     catch (err){
       if (attempt < maxRetries){ await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 1200)); continue; }
       throw err;
@@ -47,7 +106,7 @@ async function fetchWithRetry(fetchFn, maxRetries){
         const retryAfterSec = retryAfterHeader ? parseFloat(retryAfterHeader) : NaN;
         if (!isNaN(retryAfterSec) && retryAfterSec > 0){
           rateLimitRetried = true;
-          await new Promise(r => setTimeout(r, Math.min(retryAfterSec, 30) * 1000));
+          await new Promise(r => setTimeout(r, retryAfterSec * 1000));
           continue;
         }
       }
@@ -131,7 +190,7 @@ async function fetchClaudeText(systemPrompt, userContent, maxTokens, key){
       messages: [{ role: 'user', content: userContent }]
     })
   });
-  const resp = await fetchWithRetry(doFetch, 2);
+  const resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) });
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
     if (resp.status === 401) throw new Error('auth_error:Claude API Key 無效或已過期，請重新確認金鑰');
@@ -160,7 +219,7 @@ async function fetchGeminiText(systemPrompt, userContent, maxTokens, key){
     })
   });
   let resp;
-  try { resp = await fetchWithRetry(doFetch, 2); }
+  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
   catch (networkErr){ throw new Error('cors_or_network:Gemini API 連線失敗，最常見原因是瀏覽器跨來源請求（CORS）被阻擋，建議改用其他供應商。'); }
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
@@ -201,7 +260,7 @@ async function fetchChatGPTText(systemPrompt, userContent, maxTokens, key){
     })
   });
   let resp;
-  try { resp = await fetchWithRetry(doFetch, 2); }
+  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
   catch (networkErr){ throw new Error('cors_or_network:ChatGPT (OpenAI) API 連線失敗，可能是瀏覽器跨來源請求（CORS）被阻擋，建議改用其他供應商。'); }
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
@@ -224,23 +283,39 @@ async function fetchChatGPTText(systemPrompt, userContent, maxTokens, key){
 
 /* ---------------- Agnes AI（OpenAI 相容端點） ---------------- */
 async function fetchAgnesText(systemPrompt, userContent, maxTokens, key){
-  const baseUrl = getBaseUrlFor('agnes').replace(/\/+$/, '');
-  const doFetch = () => fetch(baseUrl + '/chat/completions', {
+  // v3.3.79：不要讓瀏覽器直接跨來源呼叫 Agnes。
+  // 直接 fetch https://apihub.agnes-ai.com 在一般瀏覽器會受 CORS／DNS／網路環境影響，
+  // 即使 API Key 正確也可能在真正送出 HTTP 請求前就失敗。
+  // Netlify 部署後改走同源 Function，由 server-side 代理轉發至 Agnes。
+  // v3.3.80：同時支援 Netlify 與 Windows 本機使用。
+  // 本機透過 start-local.bat 啟動的 localhost proxy，避免 file:// 瀏覽器直接跨來源呼叫 Agnes。
+  const isLocalHost = /^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname || '');
+  const isFileMode = window.location.protocol === 'file:';
+  const proxyUrl = isFileMode
+    ? 'http://127.0.0.1:8787/api/agnes'
+    : (isLocalHost ? '/api/agnes' : '/.netlify/functions/agnes-chat');
+  const directBaseUrl = (getBaseUrlFor('agnes') || 'https://apihub.agnes-ai.com/v1').replace(/\/+$/, '');
+  const payload = {
+    model: getModelFor('agnes'),
+    max_tokens: clampMaxTokens('agnes', maxTokens),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userContent }
+    ]
+  };
+  const doFetch = () => fetch(proxyUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-    body: JSON.stringify({
-      model: getModelFor('agnes'),
-      max_tokens: clampMaxTokens('agnes', maxTokens),
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userContent }
-      ]
-    })
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Agnes-Api-Key': key,
+      'X-Agnes-Base-Url': directBaseUrl
+    },
+    body: JSON.stringify(payload)
   });
   let resp;
   // Agnes AI 實測連線穩定度略低於 Claude／Gemini／OpenAI，重試次數加到 3 次（共 4 次嘗試）。
-  try { resp = await fetchWithRetry(doFetch, 3); }
-  catch (networkErr){ throw new Error('cors_or_network:Agnes AI API 連線失敗（CORS 或 DNS 錯誤，已自動重試 3 次仍失敗）。目前端點：' + baseUrl + '，請確認 Base URL 是否正確；若持續失敗，建議改用 Claude／Gemini／ChatGPT。'); }
+  try { resp = await fetchWithRetry(doFetch, 3, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
+  catch (networkErr){ throw new Error('cors_or_network:Agnes AI 本機/代理連線失敗（已自動重試 3 次）。請確認 start-local.bat 已啟動；若主線路 DNS/TLS 無法連線，API 設定可改用 https://apihub.agnes-ai.cn/v1。當前 Base URL：' + directBaseUrl); }
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
     if (resp.status === 401 || resp.status === 403) throw new Error('auth_error:Agnes AI API Key 無效或權限不足，請確認金鑰是否正確');
@@ -284,7 +359,7 @@ async function fetchOpenAICompatibleProviderText(provider, systemPrompt, userCon
     })
   });
   let resp;
-  try { resp = await fetchWithRetry(doFetch, 2); }
+  try { resp = await fetchWithRetry(doFetch, 2, { reserve:true, tokens: (window.__RM_CURRENT_RESERVATION_TOKENS || 1) }); }
   catch (networkErr){ throw new Error('cors_or_network:' + (PROVIDER_LABEL[provider] || provider) + ' API 連線失敗，請確認 Base URL、CORS 與網路連線。'); }
   if (!resp.ok){
     const errText = await resp.text().catch(() => '');
@@ -346,6 +421,12 @@ function estimateStageDuration(label){
 async function callClaude(systemPrompt, userContent, maxTokens, opts){
   const label = opts && opts.label;
   const startedAt = Date.now();
+  const requestedTokens = Math.max(256, Number(maxTokens || 1200));
+  const estimatedInputTokens = RM_GOVERNOR.estimate(String(systemPrompt || '') + String(userContent || ''));
+  const safeOutputTokens = Math.max(256, Math.min(requestedTokens, RM_GOVERNOR.tpm - estimatedInputTokens));
+  if (safeOutputTokens < 256) throw new Error('rate_limit:本次輸入內容太長，無法在 19,000 TPM 安全線內保留最小輸出空間，請縮短履歷或職缺文字。');
+  window.__RM_CURRENT_RESERVATION_TOKENS = estimatedInputTokens + safeOutputTokens;
+  maxTokens = safeOutputTokens;
   /* v3.3.65 修復：原本是「先呼叫、成功後才記錄用了哪個供應商」（例如
      `result = await fetchAgnesText(...); usedProvider = 'agnes';` 兩件事寫在同一行）。
      只要 await 那段丟出例外（例如 Agnes 被限流），後面那行賦值根本沒機會執行，
@@ -371,6 +452,7 @@ async function callClaude(systemPrompt, userContent, maxTokens, opts){
     else { result = await fetchClaudeBuiltInText(systemPrompt, userContent, maxTokens); }
 
     const rawText = result.text;
+    window.__RM_CURRENT_RESERVATION_TOKENS = 1;
     try {
       const parsed = parseJsonLoose(rawText);
       const durationMs = Date.now() - startedAt;
@@ -390,6 +472,7 @@ async function callClaude(systemPrompt, userContent, maxTokens, opts){
       throw parseErr;
     }
   } catch (err){
+    window.__RM_CURRENT_RESERVATION_TOKENS = 1;
     addDebugLog({ type: 'error', provider: usedProvider, label, message: String(err && err.message || err), name: err && err.name, durationMs: Date.now() - startedAt });
     throw err;
   }

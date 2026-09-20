@@ -25,7 +25,7 @@
 const ADMIN_EMAIL = 'felix670131@gmail.com';
 // v3.3.70：完成 PDF／後台備份測試後恢復正式 Google 登入門檻。
 // 後端管理 API 仍維持 Netlify Identity 身份驗證。
-const DISABLE_GOOGLE_LOGIN_FOR_TEST = false;
+const DISABLE_GOOGLE_LOGIN_FOR_TEST = true;
 window.__zhitouCurrentUser = null;
 
 async function getIdentityToken(forceRefresh){
@@ -61,6 +61,11 @@ async function uploadResumeToServer(file){
       'Content-Type': file.type || 'application/octet-stream',
       'X-Resume-Filename': encodeURIComponent(file.name)
     };
+    if (!token){
+      let anonId='';
+      try { anonId=localStorage.getItem('jobsight_anon_id') || ''; if(!anonId){ anonId=(crypto.randomUUID ? crypto.randomUUID() : ('anon-'+Date.now()+'-'+Math.random().toString(36).slice(2))); localStorage.setItem('jobsight_anon_id',anonId); } } catch(e){ anonId='anon-'+Date.now()+'-'+Math.random().toString(36).slice(2); }
+      headers['X-Anonymous-Id'] = anonId;
+    }
     if (token) headers['Authorization'] = 'Bearer ' + token;
 
     const res = await fetch('/.netlify/functions/upload-resume', {

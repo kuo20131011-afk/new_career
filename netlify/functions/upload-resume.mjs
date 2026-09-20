@@ -113,6 +113,7 @@ export default async (req, context) => {
 
   // v3.3.43：無論是否驗證通過，都記錄請求端的診斷資訊，方便管理者比對「繞過登入」
   // 的上傳是從哪個 IP／瀏覽器／頁面（Referer）發出。
+  const anonymousId = req.headers.get('x-anonymous-id') || '';
   const ip =
     req.headers.get('x-nf-client-connection-ip') ||
     req.headers.get('x-forwarded-for') ||
@@ -128,7 +129,7 @@ export default async (req, context) => {
     // key——同一人／同一來源再次上傳會直接覆蓋掉自己前一份，而不是無限累加新的一筆。
     const key = verified
       ? `resume-verified-${sanitizeKeyPart(email.toLowerCase())}`
-      : `resume-anon-${sanitizeKeyPart(ip)}`;
+      : `resume-anon-${sanitizeKeyPart(anonymousId || ip)}`;
     const uploadTime = new Date().toISOString();
     await filesStore.set(key, buffer, {
       metadata: { filename, email, name, verified, ip, browser, referer, time: uploadTime },

@@ -1,3 +1,39 @@
+
+## v3.3.81 Agnes AI 本機模式
+- 新增 Windows 本機啟動器 `start-local.bat`，不需要 Node.js、npm 或 Python。
+- 新增 `local-server.ps1`：提供靜態檔案服務與本機 `/api/agnes` Proxy。
+- 本機模式下 Agnes 不再由瀏覽器直接跨來源呼叫，改由 PowerShell server-side proxy 呼叫 `https://apihub.agnes-ai.com/v1/chat/completions`。
+- Netlify 模式維持 `/.netlify/functions/agnes-chat`，因此線上與本機皆可使用。
+- API Key 不寫入檔案或 log。
+
+## v3.3.79 頁尾聯絡功能
+- 「澄思」連結會以新分頁開啟 LUCIDMIND AI STUDIO 專案網站。
+- 信箱連結會開啟 Gmail 撰寫視窗，收件者為 project0983487908@gmail.com，主旨為「公鑑建議和需求」。
+- LINE 連結會開啟內建 QR-CODE 視窗，供手機掃描加入 `felix_line`。
+# v3.3.77 更新
+
+- 修正左側求職流程選單被深色 Variant 與 enterprise 樣式覆蓋，導致整體看起來全黑／色彩錯誤。
+- 恢復白底、藍色作用中狀態、灰色未啟用狀態與綠色已完成狀態。
+- 修正 `.sidebar-progress` CSS 多一個 `{` 的語法錯誤。
+- 保留 v3.3.76 的固定單屏側欄布局與進度功能。
+
+# v3.3.75 更新
+
+- 暫時關閉前端 Google／Netlify Identity 登入門檻，方便測試。
+- 登入牆不會顯示，網站開啟後直接進入主工作區。
+- 後台管理 API 的伺服器端身份驗證不修改，非管理者仍無法存取後台資料。
+- PDF 原始檔上傳與 Netlify Blobs 備份流程沿用 v3.3.69+ 已驗證版本。
+- 重新啟用 Google 登入時，只需將 `js/auth.js` 的 `DISABLE_GOOGLE_LOGIN_FOR_TEST` 改回 `false`。
+
+# JobSight v3.3.74
+
+本版採「單一路徑」求職工作台：左側 01～06 為唯一流程導航；原本重複的水平步驟列完全隱藏，主區只顯示目前步驟的實際操作內容；步驟 01 內的輸入欄位也不再使用 01/02/03 編號，避免新手誤以為還有另一套流程。
+
+- 左側：現在／已完成／待開始狀態
+- 主區：目前步驟說明與操作
+- 保留既有功能 ID 與後端流程相容性
+- Google 登入、PDF 上傳與後台備份沿用已驗證版本
+
 # JobSight v3.3.70
 
 本版本已完成 PDF 履歷上傳與後台備份測試，正式恢復 Google 帳號登入門檻。
@@ -890,3 +926,20 @@ netlify/functions/admin-resume-file.mjs   ← 後台下載／刪除單一份履�
 - Netlify Function 使用 `req.blob()` 接收檔案。
 - 前端顯示「後台備份成功／失敗」的明確狀態。
 - 上傳安全上限調整為 4 MB。
+
+
+## v3.3.73 UI 調整
+- 移除與左側步驟導覽重複的水平功能區塊。
+- 主畫面改為單一「現在只做這一步」提示。
+- 左側 01–06 顯示目前／已完成／待開始狀態。
+- 保留既有 AI、PDF、Google 登入與所有功能 ID，不更動後端流程。
+
+## v3.3.79 Agnes AI 連線修復
+- 瀏覽器不再直接呼叫 `https://apihub.agnes-ai.com/v1`，避免一般瀏覽器的 CORS／DNS／網路環境造成 API Key 正確仍無法連線。
+- 新增 `/.netlify/functions/agnes-chat` 同源 Netlify server-side proxy。
+- Agnes API Key 只以 `X-Agnes-Api-Key` 請求標頭短暫轉發，不寫入 Netlify Blobs、環境變數或程式碼。
+- 上游仍使用官方 OpenAI-compatible `POST /v1/chat/completions`，模型預設 `agnes-2.5-flash`。
+- 若直接以 `file://` 開啟 `index.html`，Agnes 無法使用這個 server-side proxy；請部署到 Netlify 後再測試。
+
+
+v3.3.81 修正：本機 API Key 設定模組加入供應商格式檢查、立即測試、模型同步；Agnes 本機 Proxy 支援自訂 Base URL、TLS 1.2 與國際備援路由。
