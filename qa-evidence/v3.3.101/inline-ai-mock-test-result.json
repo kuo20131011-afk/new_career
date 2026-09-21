@@ -1,0 +1,16 @@
+{
+  "selected": {
+    "visible": true,
+    "title": "Gemini (Google AI Studio) 已選擇",
+    "key": "",
+    "model": "gemini-3.8-flash",
+    "active": true
+  },
+  "saved": {
+    "provider": "gemini",
+    "key": "AIzaTEST",
+    "model": "gemini-test",
+    "status": "✓ API Key 已設定並啟用"
+  },
+  "lastAlert": null
+}

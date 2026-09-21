@@ -422,7 +422,7 @@ function renderPdfPreview(text){
   pdfPreviewExpanded = false;
   if (!pdfPreviewFullText){ hidePdfPreview(); return; }
   pdfPreviewToggleBtn.style.display = 'inline-block';
-  pdfPreviewToggleBtn.textContent = '顯示完整擷取文字';
+  pdfPreviewToggleBtn.textContent = '查看詳細內容';
   renderPdfPreviewContent();
 }
 
@@ -437,11 +437,9 @@ function renderPdfPreviewContent(){
     pdfPreviewBox.innerHTML = '<span class="ppb-label">擷取文字預覽（共 ' + text.length + ' 字，內容不多，已完整顯示）：</span>' + escapeHtml(text);
     return;
   }
-  const head = text.slice(0, 150);
-  const tail = text.slice(-150);
-  const omitted = text.length - 300;
-  pdfPreviewBox.innerHTML = '<span class="ppb-label">擷取文字預覽（共 ' + text.length + ' 字，前 150 字…後 150 字）：</span>' +
-    escapeHtml(head) + '<span class="ppb-ellipsis"> ......（中間省略 ' + omitted + ' 字）...... </span>' + escapeHtml(tail);
+  const head = text.slice(0, 90);
+  const omitted = Math.max(0, text.length - 90);
+  pdfPreviewBox.innerHTML = '<span class="ppb-label">已擷取履歷文字（共 ' + text.length + ' 字）</span><div class="ppb-collapsed">' + escapeHtml(head) + (omitted ? '……' : '') + '</div><span class="ppb-ellipsis">（已省略 ' + omitted + ' 字，點「查看詳細內容」展開）</span>';
 }
 
 function hidePdfPreview(){
@@ -454,7 +452,7 @@ function hidePdfPreview(){
 
 pdfPreviewToggleBtn.addEventListener('click', () => {
   pdfPreviewExpanded = !pdfPreviewExpanded;
-  pdfPreviewToggleBtn.textContent = pdfPreviewExpanded ? '收合，只顯示前後 150 字' : '顯示完整擷取文字';
+  pdfPreviewToggleBtn.textContent = pdfPreviewExpanded ? '收合詳細內容' : '查看詳細內容';
   renderPdfPreviewContent();
 });
 

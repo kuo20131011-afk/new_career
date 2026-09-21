@@ -404,7 +404,7 @@ const JSON_SAFETY_RULE = `JSON 格式安全規則：字串內容中一律使用�
    呼叫的 endRun() 讓計數器歸零，才會真正解鎖按鈕，中間三個階段
    銜接時不會出現短暫解鎖的空檔。
 ========================================================= */
-const AI_BUTTON_IDS = ['generateBtn1', 'generateBtn2', 'generateBtn4', 'runAllBtn', 'generateReverseBtn', 'generateBtn6', 'generateBtn7'];
+const AI_BUTTON_IDS = ['generateBtn1', 'generateBtn2', 'generateBtn4', 'generateReverseBtn', 'generateBtn6', 'generateBtn7'];
 let activeRunCount = 0;
 
 function beginRun(){
@@ -412,6 +412,7 @@ function beginRun(){
   if (activeRunCount === 1){
     AI_BUTTON_IDS.forEach(id => { const el = document.getElementById(id); if (el) el.disabled = true; });
   }
+  if (typeof syncIndependentStepActions === 'function') syncIndependentStepActions();
 }
 
 function endRun(){
@@ -419,5 +420,6 @@ function endRun(){
   if (activeRunCount === 0){
     updateAllButtonStates();
   }
+  if (typeof syncIndependentStepActions === 'function') syncIndependentStepActions();
 }
 

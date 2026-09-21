@@ -160,3 +160,57 @@ function clearApiKey(){
   refreshApiUi(); closeApiModal();
 }
 window.addEventListener('DOMContentLoaded',function(){ refreshApiUi(); });
+
+/* V3.3.101 QA HARDENED — inline Step 4 AI provider selection */
+let inlineSelectedProvider = '';
+function selectInlineProvider(p){
+  if(!AI_PROVIDER_CONFIG[p]) return;
+  inlineSelectedProvider = p;
+  document.querySelectorAll('.v400-provider-option').forEach(btn=>{
+    const active = btn.dataset.provider === p;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-checked', active ? 'true' : 'false');
+  });
+  const cfg = AI_PROVIDER_CONFIG[p];
+  const box = document.getElementById('inlineAiConfig');
+  const title = document.getElementById('inlineAiTitle');
+  const status = document.getElementById('inlineAiStatus');
+  const key = document.getElementById('inlineApiKey');
+  const model = document.getElementById('inlineApiModel');
+  if(title) title.textContent = cfg.label + ' 已選擇';
+  if(key) key.value = getKeyFor(p);
+  if(model) model.value = getModelFor(p);
+  if(status) status.textContent = getKeyFor(p) ? '✓ API Key 已設定' : '請輸入 API Key 後儲存啟用';
+  if(box) box.hidden = false;
+  setTimeout(()=>{ if(key) key.focus(); }, 0);
+}
+function refreshInlineAiUi(){
+  const p = getProvider();
+  if(p && AI_PROVIDER_CONFIG[p]){
+    selectInlineProvider(p);
+    const status=document.getElementById('inlineAiStatus');
+    if(status) status.textContent = getKeyFor(p) ? '✓ API Key 已設定並啟用' : '目前使用系統內建連線';
+  }
+}
+function saveInlineAiConfig(){
+  const p = inlineSelectedProvider;
+  if(!p || !AI_PROVIDER_CONFIG[p]){ alert('請先選擇 AI 模型。'); return; }
+  const keyEl=document.getElementById('inlineApiKey');
+  const modelEl=document.getElementById('inlineApiModel');
+  const v=keyEl ? keyEl.value.trim() : '';
+  const model=modelEl ? modelEl.value.trim() : '';
+  if(!v){ alert('請先貼上 API Key。若不使用自備 Key，可改用系統內建連線。'); return; }
+  if(!validateKeyFormat(p,v)){
+    alert('這不像是有效的 '+AI_PROVIDER_CONFIG[p].label+' API Key 格式；若原廠已改版，請仍以原廠最新格式為準。');
+    return;
+  }
+  if(!model){ alert('請輸入 Model ID。'); return; }
+  setKeyFor(p,v);
+  setModelFor(p,model);
+  setBaseUrlFor(p,getBaseUrlFor(p));
+  setProvider(p);
+  refreshApiUi();
+  refreshInlineAiUi();
+  if(typeof updateAllButtonStates === 'function') updateAllButtonStates();
+}
+window.addEventListener('DOMContentLoaded', function(){ setTimeout(refreshInlineAiUi, 0); });

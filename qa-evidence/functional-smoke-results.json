@@ -1,0 +1,119 @@
+{
+  "tests": [
+    {
+      "name": "tab_t1",
+      "ok": true,
+      "active": [
+        "t1"
+      ]
+    },
+    {
+      "name": "tab_t2",
+      "ok": false,
+      "active": [
+        "t1"
+      ]
+    },
+    {
+      "name": "tab_t4",
+      "ok": false,
+      "active": [
+        "t1"
+      ]
+    },
+    {
+      "name": "tab_t6",
+      "ok": false,
+      "active": [
+        "t1"
+      ]
+    },
+    {
+      "name": "tab_t7",
+      "ok": false,
+      "active": [
+        "t1"
+      ]
+    },
+    {
+      "name": "api_open",
+      "ok": false,
+      "error": "ReferenceError: openApiModal is not defined"
+    },
+    {
+      "name": "api_close",
+      "ok": false,
+      "error": "ReferenceError: closeApiModal is not defined"
+    },
+    {
+      "name": "provider_claude",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_gemini",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_chatgpt",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_agnes",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_nvidia",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_groq",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_openrouter",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "provider_mistral",
+      "ok": false,
+      "error": "ReferenceError: switchProviderTab is not defined"
+    },
+    {
+      "name": "debug_toggle",
+      "ok": false
+    },
+    {
+      "name": "line_modal",
+      "ok": false,
+      "error": "ReferenceError: openLineQrModal is not defined"
+    },
+    {
+      "name": "runall_guard",
+      "ok": true,
+      "text": ""
+    },
+    {
+      "name": "button_inventory",
+      "ok": true,
+      "missing": [],
+      "disabled": [
+        "runAllBtn",
+        "generateBtn1",
+        "generateBtn2",
+        "generateBtn4",
+        "generateReverseBtn",
+        "generateBtn6",
+        "generateBtn7"
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "consoleIssues": []
+}

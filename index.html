@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>職透 JobSight V3.3.89 · A-典藏澄思</title>
+<title>職透 JobSight V3.3.100 · A-典藏澄思｜測試模式</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -855,6 +855,122 @@
   /* tab5 board */
 
   footer{ margin-top:40px; text-align:center; font-family:'JetBrains Mono', monospace; font-size:11.5px; color:var(--ink-soft); line-height:1.8; }
+
+/* V3.3.100：依確認版面重整——兩欄輸入、2+3 合併、步驟線與區塊留白 */
+.v398-hero-card{
+  width:100%; margin:0 0 28px; padding:28px 34px 30px; border:1px solid #ddd5f7;
+  border-radius:24px; background:linear-gradient(115deg,#ffffff 0%,#faf8ff 58%,#f2edff 100%);
+  box-shadow:0 10px 28px rgba(73,53,150,.08); position:relative; overflow:hidden;
+}
+.v398-hero-card:after{content:"";position:absolute;right:-80px;top:-90px;width:420px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(116,91,235,.16),rgba(116,91,235,0) 68%);pointer-events:none;}
+.v398-hero-copy{position:relative;z-index:1;max-width:900px;}
+.v398-hero-copy h2{margin:8px 0 8px;font-size:clamp(30px,4vw,44px);line-height:1.15;color:#20205d;}
+.v398-hero-copy p{margin:0;color:#5f6380;font-size:16px;line-height:1.75;}
+.v398-feature-row{display:flex;gap:22px;flex-wrap:wrap;margin-top:20px;color:#4d3bd0;font-weight:700;font-size:14px;}
+.v398-input-grid{display:grid;grid-template-columns:minmax(0,0.9fr) minmax(0,1.6fr);gap:28px;align-items:stretch;margin-bottom:30px;}
+.v398-input-grid .v397-card{margin:0;min-width:0;border-radius:22px;padding:26px;box-shadow:0 8px 22px rgba(70,52,140,.06);}
+.v398-upload-card{display:flex;flex-direction:column;}
+.v398-title-note{margin-left:auto;color:#777b95;font-size:12px;font-weight:600;}
+.v398-upload-card .v397-dropzone{min-height:300px;height:300px;display:flex;flex-direction:column;justify-content:center;}
+.v398-job-card{display:flex;flex-direction:column;}
+.v398-job-grid{display:grid;grid-template-columns:1fr;gap:24px;flex:1;}
+.v398-job-type{padding:0 0 22px;border-right:0;border-bottom:1px solid #e6e0f4;}
+.v398-job-desc{min-width:0;}
+.v398-job-desc textarea#sharedJobDesc{width:100%;height:220px;min-height:220px;max-height:320px;resize:vertical;}
+.v398-job-type select{width:100%;min-height:52px;margin-top:12px;}
+.v397-ai-strip{margin:0 0 30px!important;}
+
+/* 五步驟：線只走數字圓心，與文字完全分離；卡片之間保留明確間隔 */
+#mainTabs.tabs{
+  position:relative!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  column-gap:20px!important;row-gap:0!important;margin:0 0 36px!important;padding:18px 34px 20px!important;
+  min-height:128px!important;border-radius:22px!important;overflow:visible!important;
+}
+#mainTabs.tabs:before{
+  content:""!important;position:absolute!important;z-index:0!important;pointer-events:none!important;
+  left:calc(10% + 34px)!important;right:calc(10% + 34px)!important;top:40px!important;height:2px!important;
+  background:#d9d4eb!important;
+}
+#mainTabs .tab-btn{
+  position:relative!important;z-index:1!important;min-width:0!important;width:100%!important;height:100%!important;
+  min-height:88px!important;padding:0 8px 10px!important;border-radius:16px!important;background:transparent!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;
+}
+#mainTabs .step-num{
+  position:relative!important;z-index:3!important;display:flex!important;align-items:center!important;justify-content:center!important;
+  flex:0 0 48px!important;width:48px!important;height:48px!important;margin:0!important;border-radius:15px!important;
+  background:#fff!important;border:1px solid #d8d1ec!important;box-shadow:0 4px 12px rgba(60,40,130,.08)!important;
+}
+#mainTabs .step-label{position:relative!important;z-index:3!important;margin-top:2px!important;padding:2px 8px!important;background:#fff!important;line-height:1.35!important;white-space:nowrap!important;}
+#mainTabs .step-meta{position:relative!important;z-index:3!important;min-height:16px!important;padding:0 8px!important;background:#fff!important;line-height:1.2!important;}
+#mainTabs .tab-btn.active{border:1px solid #d3c4f5!important;background:linear-gradient(180deg,#faf7ff,#f1ecff)!important;box-shadow:0 7px 18px rgba(91,53,213,.09)!important;}
+
+/* 五步驟內容頁：不貼邊，與上方導覽、相鄰區塊都有安全距離 */
+.tab-panel{max-width:1420px!important;margin:0 auto 40px!important;padding:0 72px!important;}
+.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{width:100%!important;box-sizing:border-box!important;margin-bottom:28px!important;}
+
+@media(max-width:1050px){
+  .v398-input-grid{grid-template-columns:1fr;gap:22px;}
+  .v398-job-grid{grid-template-columns:1fr;gap:20px;}
+  .v398-job-type{padding-right:0;padding-bottom:20px;border-right:0;border-bottom:1px solid #e6e0f4;}
+  #mainTabs.tabs{column-gap:10px;padding-left:18px!important;padding-right:18px!important;}
+  #mainTabs.tabs:before{left:10%!important;right:10%!important;}
+  .tab-panel{padding:0 34px!important;}
+}
+@media(max-width:700px){
+  body{padding:20px 12px 60px;}
+  .v398-hero-card{padding:22px 20px;margin-bottom:20px;}
+  .v398-feature-row{gap:12px;}
+  .v398-input-grid .v397-card{padding:20px;}
+  .v398-upload-card .v397-dropzone,.v398-job-desc textarea#sharedJobDesc{height:240px;min-height:240px;}
+  #mainTabs.tabs{grid-template-columns:repeat(5,minmax(90px,1fr))!important;overflow-x:auto!important;justify-content:start;padding-left:12px!important;padding-right:12px!important;}
+  #mainTabs.tabs:before{left:72px!important;right:72px!important;}
+  #mainTabs .tab-label,#mainTabs .step-label{white-space:normal!important;text-align:center!important;}
+  .tab-panel{padding:0 16px!important;}
+}
+
+
+/* V3.3.100 FINAL：步驟 2＋3 同卡直向配置，避免三欄浪費寬度 */
+.v398-input-grid{grid-template-columns:minmax(300px,.82fr) minmax(0,1.18fr)!important;gap:30px!important;}
+.v398-job-grid{grid-template-columns:1fr!important;gap:22px!important;}
+.v398-job-type{padding:0 0 22px!important;border-right:0!important;border-bottom:1px solid #e5def3!important;}
+.v398-job-desc textarea#sharedJobDesc{height:230px!important;min-height:230px!important;width:100%!important;display:block!important;}
+.v398-job-card{min-height:100%!important;}
+
+/* 五步驟線：只在圓點中心高度穿過，且用白色數字卡遮住線，不再壓到文字 */
+#mainTabs.tabs{padding-top:16px!important;padding-bottom:22px!important;gap:24px!important;}
+#mainTabs.tabs:before{top:40px!important;left:9%!important;right:9%!important;height:2px!important;background:#d7d1e7!important;}
+#mainTabs .step-num{background:#fff!important;box-shadow:0 0 0 6px #fff,0 4px 12px rgba(60,40,130,.10)!important;}
+#mainTabs .step-label{margin-top:8px!important;background:#fff!important;box-shadow:0 0 0 5px #fff!important;}
+#mainTabs .step-meta{margin-top:2px!important;background:#fff!important;box-shadow:0 0 0 4px #fff!important;}
+
+/* 各區塊明確留白，避免視覺黏在一起 */
+.v398-hero-card{margin-bottom:30px!important;}
+.v398-input-grid{margin-bottom:32px!important;}
+.v397-ai-strip{margin-bottom:32px!important;}
+#mainTabs.tabs{margin-top:0!important;margin-bottom:42px!important;}
+.tab-panel{margin-bottom:48px!important;}
+.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{margin-bottom:32px!important;}
+
+
+/* V3.3.100 RENDER-SAFE：用 flex 取代關鍵 grid，確保不同瀏覽器/列印引擎都保持兩欄與五步驟同排 */
+.v398-input-grid{display:flex!important;gap:30px!important;align-items:stretch!important;}
+.v398-input-grid>.v398-upload-card{flex:0 0 38%!important;min-width:0!important;}
+.v398-input-grid>.v398-job-card{flex:1 1 0!important;min-width:0!important;}
+.v398-job-grid{display:block!important;}
+.v398-job-type{margin-bottom:22px!important;}
+.v398-job-desc textarea#sharedJobDesc{height:220px!important;min-height:220px!important;}
+.v398-job-card{display:block!important;}
+
+#mainTabs.tabs{display:flex!important;align-items:stretch!important;justify-content:space-between!important;gap:20px!important;}
+#mainTabs .tab-btn{flex:1 1 0!important;width:auto!important;min-width:0!important;}
+#mainTabs.tabs:before{left:10%!important;right:10%!important;top:40px!important;}
+
+@media(max-width:1050px){
+  .v398-input-grid{display:block!important;}
+  .v398-input-grid>.v398-upload-card,.v398-input-grid>.v398-job-card{width:100%!important;margin-bottom:22px!important;}
+}
+
 </style>
 <!-- v3.3.4：@page 無法用 body class 選取，改用 JS 在列印前動態寫入這個 style 標籤的內容，
      讓「客製履歷」用直向 A4、「提案簡報」維持橫向，兩種模式各自套用正確的紙張方向。 -->
@@ -881,7 +997,863 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
 .footer-brand-link{color:var(--theme-accent);font-weight:800;}
 
 </style>
+
+<style id="theme-v392-real-refresh">
+/* V3.3.100 A｜真正套用新版視覺層：只改外觀，不改功能 DOM / ID / 事件位置 */
+:root{
+  --v92-purple:#5146b8;
+  --v92-purple-dark:#382f8f;
+  --v92-gold:#b08d57;
+  --v92-cream:#fbfaf7;
+  --v92-border:#e7e2d9;
+  --v92-shadow:0 18px 50px rgba(42,35,82,.10);
+}
+body{
+  background:
+    radial-gradient(circle at 8% 0%,rgba(176,141,87,.12),transparent 26%),
+    radial-gradient(circle at 92% 8%,rgba(81,70,184,.12),transparent 30%),
+    linear-gradient(180deg,#f8f7f4 0%,#f3f4f8 55%,#faf9f6 100%);
+  padding:28px 18px 70px;
+}
+body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;
+  background:radial-gradient(circle at 50% 18%,rgba(255,255,255,.9),transparent 48%);
+}
+.wrap{max-width:1180px}
+header{
+  position:relative;
+  padding:24px 28px 26px;
+  margin-bottom:24px;
+  border:1px solid var(--v92-border);
+  border-bottom:3px solid var(--v92-purple);
+  border-radius:22px;
+  background:rgba(255,255,255,.84);
+  box-shadow:var(--v92-shadow);
+  backdrop-filter:blur(10px);
+}
+header::before{
+  content:"澄思 AI STUDIO";
+  position:absolute;right:26px;bottom:10px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;
+  color:rgba(176,141,87,.55);
+}
+.eyebrow{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--v92-gold);}
+h1{font-family:'Noto Serif TC','Noto Sans TC',serif;font-size:clamp(34px,5vw,52px);font-weight:900;letter-spacing:.06em;}
+.version-badge{font-size:11px;border-radius:999px;padding:4px 9px;background:rgba(176,141,87,.08);}
+.tagline{font-size:14px;color:#5d6070;line-height:1.85;}
+.header-api-link,.api-status-pill,.user-status-pill{
+  border-radius:999px!important;
+  box-shadow:0 4px 14px rgba(38,32,80,.05);
+}
+.panel{
+  border:1px solid rgba(81,70,184,.13)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.88)!important;
+  box-shadow:var(--v92-shadow)!important;
+  padding:24px!important;
+  backdrop-filter:blur(8px);
+}
+.upload-row{gap:24px}
+.field-label{font-weight:700;color:#55586a;letter-spacing:.04em}
+.dropzone{
+  min-height:270px;
+  border:2px dashed rgba(81,70,184,.35)!important;
+  border-radius:18px!important;
+  background:linear-gradient(145deg,#fff 0%,#f7f5ff 70%,#fbfaf7 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);
+}
+.dropzone .icon{font-size:34px;filter:drop-shadow(0 4px 8px rgba(81,70,184,.12));}
+.dropzone .dz-title{font-size:15px;color:#282744}
+.dropzone .dz-sub{max-width:390px;line-height:1.7}
+select,textarea,input[type="text"],input[type="number"]{
+  border-radius:14px!important;border-color:#dedde8!important;background:#fff!important;
+}
+textarea:focus,select:focus,input:focus{box-shadow:0 0 0 4px rgba(81,70,184,.10)!important;border-color:#8178d4!important}
+.primary{
+  border-radius:999px!important;
+  background:linear-gradient(135deg,var(--v92-purple),#7468d4)!important;
+  box-shadow:0 10px 24px rgba(81,70,184,.20)!important;
+  font-weight:800!important;
+}
+.secondary,.ghost,.header-api-link{border-radius:999px!important}
+.tabs{
+  padding:10px!important;
+  gap:8px!important;
+  margin:26px 0!important;
+  border:1px solid rgba(81,70,184,.12)!important;
+  border-radius:20px!important;
+  background:rgba(255,255,255,.80)!important;
+  box-shadow:0 12px 35px rgba(42,35,82,.08)!important;
+}
+.tab-btn{
+  border:1px solid transparent!important;
+  border-radius:15px!important;
+  padding:12px 14px!important;
+  background:transparent!important;
+  transition:all .18s ease;
+}
+.tab-btn:hover{background:#f7f5ff!important;transform:none!important}
+.tab-btn.active{background:linear-gradient(180deg,#fff,#f4f1ff)!important;border-color:rgba(81,70,184,.16)!important;box-shadow:0 6px 18px rgba(81,70,184,.08)!important}
+.tab-btn.active .step-label{color:var(--v92-purple-dark)!important}
+.step-num{width:38px!important;height:38px!important;border-radius:12px!important;background:#fff!important;box-shadow:0 4px 12px rgba(42,35,82,.06)}
+.results-panel,.reverse-block{border-radius:18px!important;box-shadow:0 12px 35px rgba(42,35,82,.07)!important}
+.draft-banner,.draft-save-warning{border-radius:16px!important}
+footer{margin-top:42px!important;padding-top:26px!important}
+@media(max-width:760px){
+  body{padding:14px 10px 50px}
+  header{padding:20px 18px}
+  header::before{display:none}
+  .panel{padding:17px!important;border-radius:18px!important}
+  .tabs{border-radius:16px!important}
+}
+</style>
+
+
+<style id="theme-v393-layout-fix">
+/* V3.3.100｜A 典藏澄思版型修正：修復卡片高度、欄位比例、頁籤對齊與內容溢位；不改任何功能 ID / 事件。 */
+:root{
+  --v93-ink:#25233d;
+  --v93-muted:#68667a;
+  --v93-purple:#5a49c8;
+  --v93-purple2:#7969df;
+  --v93-deep:#24184f;
+  --v93-gold:#c49a55;
+  --v93-border:rgba(90,73,200,.16);
+  --v93-card:#ffffff;
+  --v93-shadow:0 14px 38px rgba(45,35,92,.09);
+}
+html{scroll-behavior:smooth;}
+body{
+  background:
+    radial-gradient(900px 420px at 12% -8%,rgba(196,154,85,.15),transparent 62%),
+    radial-gradient(900px 500px at 94% 0%,rgba(90,73,200,.13),transparent 65%),
+    linear-gradient(180deg,#f7f5fb 0%,#f4f3f8 48%,#faf9f7 100%);
+  color:var(--v93-ink);
+  padding:24px 18px 64px;
+}
+.wrap{max-width:1220px;}
+header{
+  min-height:118px;
+  padding:22px 26px 20px;
+  margin-bottom:22px;
+  border:1px solid rgba(255,255,255,.22);
+  border-bottom:3px solid rgba(196,154,85,.72);
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(39,26,82,.98),rgba(75,55,150,.96) 58%,rgba(49,34,105,.98));
+  box-shadow:0 18px 48px rgba(37,24,79,.20);
+  color:#fff;
+  overflow:hidden;
+}
+header::after{
+  content:"";
+  position:absolute;inset:auto -80px -110px auto;
+  width:520px;height:220px;
+  background:radial-gradient(ellipse,rgba(196,154,85,.20),transparent 66%);
+  pointer-events:none;
+}
+header .eyebrow{color:#e6c889!important;margin-bottom:7px;}
+header h1{color:#fff!important;font-size:clamp(34px,4.4vw,50px);line-height:1.05;}
+header .version-badge{color:#f0d79e;border-color:#c49a55;background:rgba(255,255,255,.06);}
+header .tagline{color:rgba(255,255,255,.82);}
+header .header-right{position:relative;z-index:2;}
+header .header-api-link,
+header .api-status-pill,
+header .user-status-pill{
+  background:rgba(255,255,255,.09)!important;
+  color:#fff!important;
+  border-color:rgba(255,255,255,.22)!important;
+}
+header .skip-to-tabs-link{color:#ead38f!important;}
+.panel{
+  border:1px solid var(--v93-border)!important;
+  border-radius:24px!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:var(--v93-shadow)!important;
+  padding:26px!important;
+}
+.upload-row{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr)!important;
+  gap:26px!important;
+  align-items:stretch!important;
+}
+.upload-left-col{min-width:0;}
+.upload-row>div:nth-child(2){min-width:0;display:flex;flex-direction:column;}
+.field-label{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  color:#4e4b63!important;font-size:13px!important;font-weight:800!important;
+  line-height:1.45;
+}
+.dropzone{
+  min-height:292px!important;
+  border:2px dashed rgba(90,73,200,.34)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,#fff 0%,#faf8ff 60%,#fffaf1 100%)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),0 8px 20px rgba(70,52,145,.04)!important;
+}
+.dropzone .icon{font-size:38px!important;}
+.dropzone .dz-title{font-weight:800!important;color:#302b52!important;}
+.dropzone .dz-sub{max-width:420px!important;}
+select,textarea,input[type="text"],input[type="number"]{
+  width:100%;
+  border-radius:14px!important;
+  border:1px solid #ddd9ea!important;
+  background:#fff!important;
+  color:#2e2b43!important;
+}
+select{min-height:48px;padding:0 14px!important;}
+textarea{line-height:1.72!important;}
+#sharedJobDesc{min-height:270px!important;max-height:360px;resize:vertical;}
+.shared-jd-block{margin-top:16px!important;min-height:0;}
+.cta-row{margin-top:20px!important;}
+.primary{
+  min-height:46px;
+  padding:11px 20px!important;
+  border-radius:999px!important;
+  background:linear-gradient(135deg,var(--v93-purple),var(--v93-purple2))!important;
+  box-shadow:0 10px 22px rgba(90,73,200,.22)!important;
+  font-weight:800!important;
+}
+.tabs{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:10px!important;
+  width:100%;
+  margin:24px 0!important;
+  padding:10px!important;
+  border:1px solid var(--v93-border)!important;
+  border-radius:22px!important;
+  background:rgba(255,255,255,.90)!important;
+  box-shadow:var(--v93-shadow)!important;
+}
+.tab-btn{
+  min-width:0!important;
+  min-height:104px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:7px!important;
+  padding:12px 8px!important;
+  border:1px solid transparent!important;
+  border-radius:16px!important;
+  background:transparent!important;
+  text-align:center!important;
+}
+.tab-btn.active{
+  background:linear-gradient(180deg,#f8f5ff,#eeeaff)!important;
+  border-color:rgba(90,73,200,.20)!important;
+  box-shadow:0 8px 20px rgba(90,73,200,.10)!important;
+}
+.step-num{
+  width:40px!important;height:40px!important;
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  border:1px solid #ddd9ea!important;
+  border-radius:13px!important;
+  color:#57536c!important;
+  background:#fff!important;
+}
+.tab-btn.active .step-num{border-color:#7667d8!important;color:#4d3fb1!important;box-shadow:0 4px 12px rgba(90,73,200,.12);}
+.step-label{font-weight:800!important;font-size:13px!important;line-height:1.35!important;white-space:nowrap;}
+.step-meta{font-family:'JetBrains Mono',monospace;font-size:10px!important;color:#77738a!important;min-height:14px;}
+.tab-panel{min-width:0;}
+.tool-panel{padding:22px!important;}
+.tool-note{color:#666278!important;line-height:1.75!important;}
+.results-panel,.reverse-block{
+  border:1px solid rgba(90,73,200,.12)!important;
+  border-radius:20px!important;
+  background:rgba(255,255,255,.92)!important;
+  box-shadow:0 12px 32px rgba(42,35,82,.07)!important;
+}
+.results-panel{min-height:180px;}
+.placeholder{line-height:1.75!important;}
+footer{margin-top:34px!important;}
+@media(max-width:900px){
+  .tabs{grid-template-columns:repeat(3,minmax(0,1fr))!important;}
+  .tab-btn{min-height:96px!important;}
+}
+@media(max-width:760px){
+  body{padding:12px 10px 48px;}
+  header{padding:20px 18px;border-radius:18px;}
+  .upload-row{grid-template-columns:1fr!important;gap:18px!important;}
+  .dropzone{min-height:220px!important;}
+  #sharedJobDesc{min-height:220px!important;}
+  .tabs{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:8px!important;}
+  .tab-btn{min-height:88px!important;}
+}
+@media(max-width:420px){
+  .tabs{grid-template-columns:1fr 1fr!important;}
+  .step-label{font-size:12px!important;white-space:normal;}
+}
+</style>
+
 <style id="dynPageSizeStyle"></style>
+
+<style id="v395-real-layout">
+:root{--v395-purple:#3d267f;--v395-purple2:#6b4bd8;--v395-gold:#d6a94a;--v395-ink:#202040;--v395-border:#e2dcf4;--v395-bg:#f8f7fc}
+body{background:radial-gradient(circle at 12% 0%,#fff 0,#f7f5fc 48%,#eeeafb 100%)!important;color:var(--v395-ink)}
+.wrap{max-width:1540px!important;margin:0 auto!important;padding:28px 34px 60px!important}
+header{background:linear-gradient(135deg,#2e1b66 0%,#4b318d 52%,#38256f 100%)!important;border-radius:28px!important;border-bottom:3px solid var(--v395-gold)!important;box-shadow:0 20px 50px rgba(61,38,127,.18)!important;padding:34px 38px!important;color:#fff!important;min-height:170px!important;box-sizing:border-box}
+header h1{color:#fff!important;font-size:54px!important;letter-spacing:.04em}.eyebrow{color:#f4d78d!important}.tagline{color:#f4f1ff!important}.skip-to-tabs-link{color:#f5d985!important}.header-api-link,.api-status-pill{border-color:rgba(255,255,255,.3)!important;color:#fff!important;background:rgba(255,255,255,.1)!important}
+.v395-intro-grid{display:grid;grid-template-columns:1.12fr 1fr 1fr;gap:18px;margin-top:26px}.v395-welcome-card,.v395-card{background:rgba(255,255,255,.96);border:1px solid var(--v395-border);border-radius:22px;box-shadow:0 10px 28px rgba(61,38,127,.08);padding:24px;box-sizing:border-box;min-width:0}.v395-welcome-card{position:relative;overflow:hidden;min-height:390px;background:linear-gradient(180deg,#fff 0%,#fff 72%,#f0e9ff 100%)}.v395-kicker{font-size:13px;color:#6244b9;font-weight:700;letter-spacing:.08em}.v395-welcome-card h2{font-size:29px;margin:18px 0 12px;color:#25205b}.v395-welcome-card p{line-height:1.8;color:#5f5b79}.v395-feature-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:28px;color:#5c35bd;font-size:14px;font-weight:700}.v395-wave{position:absolute;left:-8%;right:-8%;bottom:-72px;height:145px;background:radial-gradient(ellipse at 20% 70%,#c7b4ff 0,transparent 52%),radial-gradient(ellipse at 60% 80%,#f5d994 0,transparent 43%),linear-gradient(170deg,transparent 20%,#e8ddff 20%,#eee5ff 62%,transparent 63%);opacity:.9}
+.v395-card-title{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:800;color:#292353;margin-bottom:8px}.v395-card-title b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#4b2aa4,#7252dc);color:#fff;font-size:14px}.v395-card-title span:last-child{margin-left:auto;font-size:12px;color:#77728c;font-weight:600}.v395-help,.v395-role-note{font-size:12px;color:#77728c;margin:0 0 12px}.v395-dropzone{height:178px!important;border:2px dashed #cbbcff!important;border-radius:16px!important;background:#fbfaff!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important}.v395-dropzone .icon{font-size:35px}.v395-dropzone .dz-title{font-weight:800}.v395-card select,.v395-card textarea{width:100%!important;box-sizing:border-box;border:1px solid #ddd6ef!important;border-radius:14px!important;background:#fff!important;color:#2b2744!important}.v395-card select{height:48px;padding:0 14px}.v395-card textarea{height:205px!important;resize:vertical;padding:14px;line-height:1.65}.v395-step3{margin-top:20px}.v395-status{font-size:12px;color:#766f87;margin-top:9px}.v395-run-row{display:flex;align-items:center;gap:14px;margin:18px 0}.v395-primary{background:linear-gradient(90deg,#6a43d5,#5226bc)!important;border-radius:14px!important;box-shadow:0 12px 26px rgba(82,38,188,.2)!important;padding:14px 26px!important}.v395-ai-strip{display:grid;grid-template-columns:1fr 1.5fr;gap:18px;align-items:center;margin-top:18px;padding:20px 24px;border:1px solid #e1d8f7;border-radius:22px;background:linear-gradient(100deg,#f0e9ff,#fff 55%,#f7f3ff);box-shadow:0 8px 22px rgba(61,38,127,.06)}.v395-ai-copy{display:flex;gap:16px;align-items:center}.v395-ai-icon{width:68px;height:68px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#805be7,#3f257f);color:#fff;font-weight:900;box-shadow:0 8px 20px rgba(70,40,150,.25)}.v395-ai-copy h3{margin:0 0 5px;font-size:20px;color:#30215f}.v395-ai-copy p{margin:0;color:#716b82;font-size:13px;line-height:1.6}.v395-models{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}.v395-models strong{width:100%;color:#5b3ab4;font-size:13px}.v395-models span{background:#fff;border:1px solid #ebe6f7;border-radius:11px;padding:10px 9px;font-size:11px;color:#57516b;box-shadow:0 3px 8px rgba(61,38,127,.04)}
+.tabs{margin-top:20px!important;background:#fff!important;border:1px solid #e4ddf3!important;border-radius:22px!important;padding:12px!important;gap:12px!important;box-shadow:0 10px 28px rgba(61,38,127,.07)!important}.tab-btn{min-height:100px!important;border-radius:17px!important;border:1px solid #e5e0f2!important;background:#fff!important}.tab-btn.active{background:linear-gradient(135deg,#f0e8ff,#fff)!important;border-color:#cbb8ff!important;box-shadow:0 7px 20px rgba(93,58,189,.13)!important}.step-num{color:#5b3bd1!important}.step-label{font-weight:800!important}.tab-panel{margin-top:20px!important}.tool-panel,.results-panel{border-radius:22px!important}
+@media(max-width:1050px){.v395-intro-grid{grid-template-columns:1fr}.v395-welcome-card{min-height:250px}.v395-ai-strip{grid-template-columns:1fr}.v395-models{justify-content:flex-start}}
+@media(max-width:700px){.wrap{padding:16px!important}header{padding:24px!important}header h1{font-size:42px!important}.v395-intro-grid{gap:12px}.v395-card{padding:18px}.tabs{overflow-x:auto}.tab-btn{min-width:170px!important}.v395-models span{padding:8px}}
+</style>
+<style id="v397-confirmed-layout">
+:root{--v397-deep:#24145d;--v397-purple:#5b35d5;--v397-violet:#7b59e8;--v397-gold:#e2b84e;--v397-ink:#27205b;--v397-soft:#f6f2ff;--v397-line:#ded7f4}
+body{padding:0 0 56px!important;background:linear-gradient(180deg,#f8f7ff 0%,#f3f0fb 52%,#faf9ff 100%)!important;color:var(--v397-ink)!important}
+.wrap{max-width:none!important;width:100%!important;margin:0!important;padding:0 26px 40px!important}
+header{margin:0 -26px 28px!important;border:0!important;border-bottom:2px solid var(--v397-gold)!important;border-radius:0!important;min-height:76px!important;padding:12px 28px!important;background:linear-gradient(110deg,#24145d,#4b2c91 55%,#2d176d)!important;box-shadow:0 10px 30px rgba(44,24,100,.20)!important;display:flex!important;align-items:center!important;flex-wrap:nowrap!important;gap:20px!important;color:#fff!important}
+header>div:first-child{display:flex;align-items:center;gap:14px;min-width:235px}
+.eyebrow{font-family:'Noto Sans TC',sans-serif!important;font-size:11px!important;letter-spacing:.08em!important;margin:0!important;color:#f7d77d!important;white-space:nowrap}
+header h1{font-family:'Noto Serif TC',serif!important;font-size:30px!important;line-height:1!important;margin:0!important;white-space:nowrap;color:#fff!important}
+.version-badge{font-size:10px!important;border-color:#e4bd5c!important;color:#f5d57b!important;margin-left:7px!important;padding:3px 7px!important}
+.header-right{display:flex!important;flex:1!important;flex-direction:row!important;align-items:center!important;justify-content:flex-end!important;gap:14px!important;min-width:0!important}
+.v397-top-nav{display:flex;align-items:center;gap:5px;flex:1;justify-content:center;min-width:0}
+.v397-top-nav button{border:0;background:transparent;color:#f8f5ff;font:700 12px 'Noto Sans TC',sans-serif;padding:9px 11px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.v397-top-nav button:hover,.v397-top-nav .v397-nav-brand{background:rgba(255,255,255,.13)}
+.v397-top-nav .v397-nav-brand{border:1px solid rgba(226,184,78,.7);color:#ffe18a;box-shadow:0 0 0 1px rgba(226,184,78,.08) inset}.v397-nav-brand span{font-family:'JetBrains Mono',monospace;font-size:9px;margin-left:5px}
+.header-api-row{flex:0 0 auto!important}.tagline,.skip-to-tabs-link{display:none!important}.user-status-pill{color:#fff!important}
+.v397-intro-grid{display:grid;grid-template-columns:1.18fr .95fr .95fr .95fr;gap:18px;margin:0 auto;max-width:1540px}
+.v397-welcome-card,.v397-card{background:rgba(255,255,255,.97);border:1px solid var(--v397-line);border-radius:18px;box-shadow:0 10px 26px rgba(53,36,120,.08);padding:20px;min-width:0;position:relative;overflow:hidden}
+.v397-welcome-card{min-height:300px;background:linear-gradient(180deg,#fff 0%,#fff 66%,#eee7ff 100%)}
+.v397-kicker{font:700 13px 'Manrope',sans-serif;color:#5a3dc1;letter-spacing:.09em}.v397-welcome-card h2{font:800 26px 'Noto Sans TC',sans-serif;line-height:1.45;margin:18px 0 10px;color:#25205b}.v397-welcome-card p{margin:0;color:#615b78;line-height:1.8;font-size:14px}.v397-feature-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px;color:#5a32c0;font-weight:800;font-size:13px}.v397-wave{position:absolute;left:-12%;right:-12%;bottom:-70px;height:150px;background:radial-gradient(ellipse at 20% 70%,#c5b0ff 0,transparent 52%),radial-gradient(ellipse at 65% 82%,#f3d58d 0,transparent 40%),linear-gradient(165deg,transparent 20%,#e5dbff 21%,#eee7ff 65%,transparent 66%);opacity:.9}
+.v397-card{min-height:300px}.v397-card-title{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;color:#2e2760;margin-bottom:8px}.v397-card-title b{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#4a28a8,#7552e0);font-size:14px;flex:0 0 auto}.v397-card-title span:nth-child(2){flex:1}.v397-card-title span:last-child{font:700 11px 'JetBrains Mono',monospace;color:#746d89}.v397-help,.v397-role-note{font-size:11.5px;color:#7b748d;line-height:1.55;margin-bottom:10px}.v397-dropzone{height:140px!important;border:2px dashed #c7b8ff!important;border-radius:14px!important;background:#fbfaff!important;display:flex!important;align-items:center!important;justify-content:center!important}.v397-dropzone .icon{font-size:32px}.v397-dropzone .dz-title{font-weight:800;font-size:13px}.v397-dropzone .dz-sub{font-size:11px}.v397-card select{height:44px!important}.v397-jd-card textarea{height:190px!important;min-height:190px!important;max-height:190px!important;resize:none!important;font-size:12px!important;line-height:1.6!important;padding:12px!important}.v397-generate{width:100%;margin-top:10px;border:0;border-radius:12px;padding:11px;background:linear-gradient(90deg,#b77b22,#6b2fd0);color:#fff;font-weight:800;cursor:pointer}.v397-status{font-size:11px;color:#7d768d;margin-top:8px}.pdf-preview-box{max-height:82px!important;overflow:hidden!important;margin-top:8px!important;font-size:11px!important;line-height:1.5!important}.pdf-preview-toggle{margin-top:6px!important;border:1px solid #bda9f4!important;background:#fff!important;color:#5a35c0!important;border-radius:999px!important;padding:6px 10px!important;font-size:11px!important;cursor:pointer}
+.v397-ai-strip{display:grid;grid-template-columns:1fr 1.6fr;align-items:center;gap:20px;max-width:1540px;margin:20px auto 0;padding:16px 20px;border:1px solid #e0d8f5;border-radius:18px;background:linear-gradient(100deg,#eee7ff,#fff 56%,#f6f1ff);box-shadow:0 8px 22px rgba(53,36,120,.06)}.v397-ai-copy{display:flex;align-items:center;gap:14px}.v397-ai-icon{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#825fe9,#372078);color:#fff;font-weight:900;box-shadow:0 8px 18px rgba(67,36,150,.22)}.v397-ai-copy h3{margin:0 0 4px;font-size:20px;color:#302064}.v397-ai-copy p{margin:0;font-size:12px;line-height:1.6;color:#746d84}.v397-models{min-width:0}.v397-model-link{border:1px solid #cbb8f5;background:#fff;color:#5c36c7;border-radius:10px;padding:8px 14px;font-weight:800;cursor:pointer;margin-bottom:9px}.v397-provider-row{display:flex;gap:6px;flex-wrap:nowrap}.v397-provider-row span{flex:1;min-width:0;text-align:center;background:#fff;border:1px solid #ebe6f7;border-radius:9px;padding:8px 5px;font-size:10px;color:#5b556d;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v395-run-row{max-width:1540px;margin:14px auto!important;display:flex;align-items:center;gap:12px}.v395-primary{padding:11px 20px!important}
+.tabs{position:relative;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:0!important;max-width:1540px;margin:18px auto!important;padding:20px 18px 14px!important;border:1px solid #dfd7f1!important;border-radius:20px!important;background:#fff!important;box-shadow:0 10px 26px rgba(53,36,120,.07)!important;overflow:hidden!important}
+.tabs::before{content:"";position:absolute;left:9%;right:9%;top:49px;height:2px;background:#d9d2ef;z-index:0}.tab-btn{position:relative;z-index:1;min-height:104px!important;border:0!important;background:transparent!important;border-radius:14px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;padding:0 8px!important}.tab-btn.active{background:linear-gradient(180deg,#faf7ff,#f1ecff)!important;border:1px solid #d3c4f5!important;box-shadow:0 7px 18px rgba(91,53,213,.09)!important}.step-num{width:44px!important;height:44px!important;border-radius:14px!important;background:#fff!important;border:1px solid #d8d1ec!important;color:#5a39c4!important;box-shadow:0 4px 10px rgba(60,40,130,.06);position:relative}.step-label{font-size:13px!important;font-weight:800!important;color:#2e275a!important;white-space:nowrap!important}.step-meta{font-size:10px!important;color:#77718a!important;min-height:14px}.tab-dot{position:absolute!important;right:-2px!important;top:-2px!important}
+.tab-panel{max-width:1540px!important;margin:0 auto!important;padding:0 24px!important}.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{margin-left:0!important;margin-right:0!important}.tool-panel,.results-panel,.reverse-block{border-radius:18px!important;box-shadow:0 10px 26px rgba(53,36,120,.06)!important}.results-panel{padding:24px!important}.q-card{margin-left:0!important;margin-right:0!important}.placeholder{padding:18px!important}
+footer{max-width:1540px;margin:34px auto 0!important;padding:22px 26px!important;background:#24145d!important;color:#eeeaff!important;border-top:2px solid #e2b84e!important;border-radius:18px 18px 0 0!important}
+@media(max-width:1150px){.v397-intro-grid{grid-template-columns:1fr 1fr}.v397-welcome-card{grid-column:1/-1}.v397-ai-strip{grid-template-columns:1fr}.v397-provider-row{flex-wrap:wrap}.v397-provider-row span{flex:1 1 22%}}
+@media(max-width:850px){header{align-items:flex-start!important}.v397-top-nav{display:none}.header-right{margin-left:auto}.v397-intro-grid{grid-template-columns:1fr}.v397-welcome-card{grid-column:auto}.tabs{overflow-x:auto;grid-template-columns:repeat(5,minmax(150px,1fr))!important}.tab-panel{padding:0 8px!important}.wrap{padding:0 12px 30px!important}header{margin-left:-12px!important;margin-right:-12px!important;padding:12px 16px!important}}
+</style>
+<style id="v397-final-polish">
+.v395-run-row{display:none!important}
+.tabs{display:flex!important;flex-wrap:nowrap!important;align-items:stretch!important;gap:0!important;padding:18px 14px 12px!important}
+.tabs::before{left:8%;right:8%;top:45px}
+.tab-btn{flex:1 1 0!important;width:20%!important;min-width:0!important}
+.v397-provider-row{overflow:hidden}
+.v397-provider-row span{min-width:0!important}
+.tab-panel{padding-left:30px!important;padding-right:30px!important}
+.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{width:100%!important}
+@media(max-width:850px){.tabs{overflow-x:auto!important}.tab-btn{flex:0 0 160px!important;width:160px!important}.tab-panel{padding-left:8px!important;padding-right:8px!important}}
+</style>
+<style id="v397-layout-final">
+/* V3.3.100｜確認版：三欄首頁＋步驟 2/3 同欄＋五步驟連線 */
+.v397-intro-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.08fr) minmax(0,1fr) minmax(0,1fr)!important;
+  gap:26px!important;
+  align-items:start!important;
+  margin-top:28px!important;
+}
+.v397-intro-grid .v397-welcome-card{
+  grid-column:1!important;grid-row:1!important;min-width:0!important;
+}
+.v397-intro-grid > .v397-card:nth-child(2){
+  grid-column:2!important;grid-row:1!important;min-width:0!important;
+}
+.v397-intro-grid > .v397-card:nth-child(3){
+  grid-column:3!important;grid-row:1!important;min-width:0!important;align-self:start!important;
+}
+.v397-intro-grid > .v397-card.v397-jd-card{
+  grid-column:3!important;grid-row:1!important;min-width:0!important;align-self:end!important;margin-top:344px!important;
+}
+.v397-welcome-card,.v397-card{overflow:hidden!important;box-sizing:border-box!important;}
+.v397-card{padding:24px!important;}
+.v397-dropzone{min-height:250px!important;height:250px!important;}
+.v397-jd-card textarea#sharedJobDesc{min-height:220px!important;height:220px!important;max-height:260px!important;}
+.v397-generate{margin-top:14px!important;width:100%!important;}
+.v397-ai-strip{margin-top:28px!important;}
+
+/* 五步驟：連線只穿過 01~05 圓點中心，文字區不再被線壓住 */
+#mainTabs.tabs{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:18px!important;
+  margin:30px 0 38px!important;
+  padding:18px 30px 20px!important;
+  overflow:visible!important;
+}
+#mainTabs.tabs::before{
+  content:""!important;
+  position:absolute!important;
+  left:10.5%!important;right:10.5%!important;top:40px!important;height:2px!important;
+  background:linear-gradient(90deg,#ddd7ee,#cfc5ea,#ddd7ee)!important;
+  z-index:0!important;pointer-events:none!important;
+}
+#mainTabs .tab-btn{
+  position:relative!important;z-index:1!important;width:auto!important;min-width:0!important;
+  min-height:112px!important;padding:0 10px 8px!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+  gap:8px!important;background:transparent!important;
+}
+#mainTabs .step-num{
+  position:relative!important;z-index:3!important;flex:0 0 44px!important;
+  width:44px!important;height:44px!important;background:#fff!important;
+  border:1px solid #d8d1ec!important;box-shadow:0 4px 12px rgba(60,40,130,.08)!important;
+}
+#mainTabs .step-label,#mainTabs .step-meta{
+  position:relative!important;z-index:3!important;background:#fff!important;padding:0 6px!important;
+}
+#mainTabs .step-label{margin-top:1px!important;}
+#mainTabs .step-meta{min-height:16px!important;}
+#mainTabs .tab-btn.active{
+  border:1px solid #d3c4f5!important;background:linear-gradient(180deg,#faf7ff,#f1ecff)!important;
+  box-shadow:0 7px 18px rgba(91,53,213,.09)!important;border-radius:18px!important;
+}
+
+/* 步驟資料頁：與五步驟區分開，左右保留安全邊界 */
+.tab-panel{
+  max-width:1460px!important;margin:0 auto 36px!important;padding:0 54px!important;
+}
+.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{
+  width:100%!important;box-sizing:border-box!important;
+}
+
+@media(max-width:1150px){
+  .v397-intro-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;}
+  .v397-intro-grid .v397-welcome-card{grid-column:1/-1!important;grid-row:auto!important;}
+  .v397-intro-grid > .v397-card:nth-child(2){grid-column:1!important;grid-row:auto!important;}
+  .v397-intro-grid > .v397-card:nth-child(3),
+  .v397-intro-grid > .v397-card.v397-jd-card{grid-column:2!important;grid-row:auto!important;}
+  .v397-intro-grid > .v397-card.v397-jd-card{margin-top:18px!important;}
+  #mainTabs.tabs{gap:10px!important;padding-left:20px!important;padding-right:20px!important;}
+  .tab-panel{padding-left:34px!important;padding-right:34px!important;}
+}
+@media(max-width:850px){
+  .v397-intro-grid{grid-template-columns:1fr!important;gap:18px!important;}
+  .v397-intro-grid .v397-welcome-card,
+  .v397-intro-grid > .v397-card:nth-child(2),
+  .v397-intro-grid > .v397-card:nth-child(3),
+  .v397-intro-grid > .v397-card.v397-jd-card{grid-column:1!important;grid-row:auto!important;margin-top:0!important;}
+  #mainTabs.tabs{display:flex!important;overflow-x:auto!important;gap:10px!important;padding:16px 14px 18px!important;}
+  #mainTabs.tabs::before{left:55px!important;right:55px!important;}
+  #mainTabs .tab-btn{flex:0 0 150px!important;width:150px!important;}
+  .tab-panel{padding-left:16px!important;padding-right:16px!important;}
+}
+</style>
+
+
+<style id="v398-final-layout-override">
+/* V3.3.100 最終覆蓋：這組規則放在所有舊版 CSS 之後，避免舊版三欄/五步驟 grid 規則反蓋新版。 */
+.v398-input-grid{display:flex!important;flex-direction:row!important;gap:30px!important;align-items:stretch!important;}
+.v398-input-grid>.v398-upload-card{flex:0 0 38%!important;width:38%!important;min-width:0!important;}
+.v398-input-grid>.v398-job-card{flex:1 1 0!important;width:auto!important;min-width:0!important;display:block!important;}
+.v398-job-grid{display:block!important;}
+.v398-job-type{margin-bottom:22px!important;padding:0 0 22px!important;border:0!important;border-bottom:1px solid #e5def3!important;}
+.v398-job-desc textarea#sharedJobDesc{width:100%!important;height:220px!important;min-height:220px!important;max-height:300px!important;display:block!important;}
+
+#mainTabs.tabs{display:flex!important;flex-wrap:nowrap!important;align-items:stretch!important;justify-content:space-between!important;gap:10px!important;grid-template-columns:none!important;padding:16px 24px 22px!important;margin:0 0 42px!important;overflow:visible!important;}
+#mainTabs.tabs:before{content:""!important;display:block!important;position:absolute!important;z-index:0!important;left:10%!important;right:10%!important;top:40px!important;height:2px!important;background:#d7d1e7!important;}
+#mainTabs .tab-btn{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;height:auto!important;min-height:88px!important;padding:0 4px 10px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;gap:10px!important;}
+#mainTabs .step-num{position:relative!important;z-index:3!important;flex:0 0 48px!important;width:48px!important;height:48px!important;background:#fff!important;box-shadow:0 0 0 6px #fff,0 4px 12px rgba(60,40,130,.10)!important;}
+#mainTabs .step-label{position:relative!important;z-index:3!important;margin-top:8px!important;background:#fff!important;box-shadow:0 0 0 5px #fff!important;white-space:nowrap!important;line-height:1.35!important;}
+#mainTabs .step-meta{position:relative!important;z-index:3!important;margin-top:2px!important;background:#fff!important;box-shadow:0 0 0 4px #fff!important;min-height:16px!important;}
+.tab-panel{max-width:1420px!important;margin:0 auto 48px!important;padding:0 72px!important;}
+.tab-panel>.panel,.tab-panel>.results-panel,.tab-panel>.reverse-block{width:100%!important;margin-bottom:32px!important;}
+.v398-hero-card{margin-bottom:30px!important;}
+.v398-input-grid{margin-bottom:32px!important;}
+.v397-ai-strip{margin-bottom:32px!important;}
+@media(max-width:1050px){
+ .v398-input-grid{display:block!important;}
+ .v398-input-grid>.v398-upload-card,.v398-input-grid>.v398-job-card{width:100%!important;margin-bottom:22px!important;}
+}
+@media(max-width:850px){
+ #mainTabs.tabs{overflow-x:auto!important;justify-content:flex-start!important;}
+ #mainTabs .tab-btn{flex:0 0 150px!important;width:150px!important;}
+ .tab-panel{padding-left:16px!important;padding-right:16px!important;}
+}
+</style>
+
+
+<style id="v399-ui-fixes">
+/* V3.3.100：五步驟只保留一條實體連線，避免舊版 pseudo-element 疊成雙線 */
+#mainTabs.tabs::before{display:none!important;content:none!important;}
+#mainTabs.tabs{position:relative!important;isolation:isolate!important;}
+#mainTabs .v399-step-line{position:absolute!important;z-index:0!important;left:10%!important;right:10%!important;top:40px!important;height:2px!important;background:#d8d1e7!important;border-radius:2px!important;display:block!important;pointer-events:none!important;}
+#mainTabs .tab-btn{z-index:1!important;}
+#mainTabs .step-num{z-index:2!important;}
+#mainTabs .step-label,#mainTabs .step-meta{z-index:2!important;}
+#mainTabs .step-label{margin-top:9px!important;}
+#mainTabs .step-meta{margin-top:2px!important;}
+
+/* 區塊間距：避免五步驟、資料頁、結果卡黏在一起 */
+.v398-input-grid{margin-bottom:38px!important;}
+.v397-ai-strip{margin-bottom:38px!important;}
+.v395-run-row{margin:0 0 34px!important;min-height:58px;display:flex;align-items:center;}
+#mainTabs.tabs{margin-bottom:48px!important;}
+.tab-panel{margin-bottom:56px!important;}
+
+/* 履歷預覽：頁面只留短摘要，完整內容改用浮動視窗 */
+.pdf-preview-box{max-height:84px!important;overflow:hidden!important;}
+.pdf-preview-toggle{display:block!important;width:100%!important;box-sizing:border-box!important;margin-top:8px!important;padding:9px 14px!important;border-radius:12px!important;font-weight:700!important;}
+
+/* 完整履歷文字浮動視窗 */
+.v399-modal-backdrop{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(20,16,45,.55);backdrop-filter:blur(5px);}
+.v399-modal{width:min(980px,92vw);height:min(760px,88vh);display:flex;flex-direction:column;background:#fff;border:1px solid #ddd4f5;border-radius:22px;box-shadow:0 28px 80px rgba(26,18,70,.28);overflow:hidden;}
+.v399-modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px 14px;border-bottom:1px solid #eee9f7;background:linear-gradient(120deg,#fbf9ff,#f3edff);}
+.v399-modal-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;color:#6b4bd2;margin-bottom:3px;}
+.v399-modal-head h3{margin:0;color:#292052;font-size:22px;}
+.v399-modal-close{width:38px;height:38px;border-radius:50%;border:1px solid #d8cff0;background:#fff;color:#4e3a98;font-size:25px;line-height:1;cursor:pointer;}
+.v399-modal-meta{padding:10px 24px;color:#746d84;font-size:12px;border-bottom:1px solid #f0edf7;}
+.v399-modal-body{flex:1;margin:0;padding:22px 26px;overflow:auto;white-space:pre-wrap;word-break:break-word;font:14px/1.85 'Noto Sans TC',sans-serif;color:#2c2940;background:#fff;}
+body.v399-modal-open{overflow:hidden!important;}
+
+/* 一鍵產生：執行中要有明確、固定的視覺狀態 */
+#runAllBtn.v399-running{position:relative!important;min-width:360px!important;opacity:1!important;cursor:wait!important;box-shadow:0 10px 28px rgba(82,38,188,.28)!important;}
+#runAllBtn.v399-running::before{content:"";display:inline-block;width:12px;height:12px;margin-right:9px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;vertical-align:-2px;animation:v399spin .8s linear infinite;}
+#runAllStatus.v399-running-status{display:inline-flex!important;align-items:center;min-height:38px;padding:8px 14px;border:1px solid #ddd4f5;border-radius:12px;background:#faf8ff;color:#4f3aa1;font-weight:700;line-height:1.45;}
+@keyframes v399spin{to{transform:rotate(360deg)}}
+@media(max-width:700px){
+  #mainTabs .v399-step-line{left:10%!important;right:10%!important;}
+  #runAllBtn.v399-running{min-width:0!important;width:100%!important;}
+  .v395-run-row{display:block!important;}
+  #runAllStatus.v399-running-status{margin-top:10px;width:100%;box-sizing:border-box;}
+  .v399-modal-backdrop{padding:10px;}
+  .v399-modal{width:96vw;height:92vh;border-radius:16px;}
+}
+</style>
+
+
+<style id="v3100-final-ui-fix">
+/* V3.3.100：最終 UI 修正：Header 不重疊、STEP 只保留單一連線、執行狀態強化 */
+header{display:grid!important;grid-template-columns:auto 1fr!important;grid-template-areas:"brand actions" "nav nav"!important;align-items:center!important;gap:10px 18px!important;min-height:92px!important;padding:12px 28px!important;box-sizing:border-box!important;}
+header>div:first-child{grid-area:brand!important;min-width:230px!important;display:flex!important;align-items:center!important;gap:12px!important;}
+header .header-right{grid-area:actions!important;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:12px!important;min-width:0!important;}
+header .header-api-row{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:nowrap!important;}
+header .v397-top-nav{grid-area:nav!important;display:none!important;}
+header .api-status-pill{max-width:360px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;}
+header .header-api-link{white-space:nowrap!important;}
+/* redundant top navigation is hidden because the five-step navigator below is the canonical navigation */
+#mainTabs.tabs::before,
+#mainTabs .tab-btn:not(:last-child)::before,
+.tabs::before{display:none!important;content:none!important;}
+#mainTabs.tabs{position:relative!important;}
+#mainTabs .v399-step-line{display:block!important;position:absolute!important;z-index:0!important;left:10%!important;right:10%!important;top:40px!important;height:2px!important;background:#d8d1e7!important;border:0!important;box-shadow:none!important;}
+#mainTabs .tab-btn{position:relative!important;z-index:1!important;}
+#mainTabs .step-num{position:relative!important;z-index:3!important;}
+#mainTabs .step-label,#mainTabs .step-meta{position:relative!important;z-index:3!important;}
+/* Make run progress impossible to miss */
+.v395-run-row{display:flex!important;align-items:center!important;gap:14px!important;margin:0 auto 34px!important;max-width:1540px!important;min-height:66px!important;padding:0 4px!important;}
+#runAllBtn{position:relative!important;}
+#runAllBtn.v399-running{min-width:420px!important;height:52px!important;font-size:15px!important;font-weight:900!important;}
+#runAllBtn.v399-running::after{content:' AI 分析正在執行，請勿重複點擊';display:inline!important;margin-left:8px!important;font-size:12px!important;font-weight:700!important;opacity:.95!important;}
+#runAllStatus.v399-running-status{display:flex!important;flex:1 1 auto!important;align-items:center!important;min-height:52px!important;box-sizing:border-box!important;padding:10px 16px!important;border:2px solid #cfc2f5!important;border-radius:14px!important;background:linear-gradient(90deg,#f7f2ff,#fff)!important;color:#4d389f!important;font-weight:800!important;}
+#runAllStatus.v399-running-status .spinner{width:15px!important;height:15px!important;flex:0 0 15px!important;margin-right:9px!important;border:2px solid #cfc2f5!important;border-top-color:#5b35d5!important;border-radius:50%!important;animation:v399spin .8s linear infinite!important;}
+#runAllStatus.v399-running-status::before{content:'●';color:#6b43d5;margin-right:8px;animation:v399pulse 1s ease-in-out infinite;}
+@keyframes v399pulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media(max-width:1100px){
+ header{grid-template-columns:1fr!important;grid-template-areas:"brand" "actions"!important;gap:8px!important;}
+ header .header-right{justify-content:flex-start!important;}
+ #runAllBtn.v399-running{min-width:0!important;width:auto!important;}
+}
+@media(max-width:700px){
+ header{padding:12px 16px!important;}
+ header .header-api-row{flex-wrap:wrap!important;}
+ header .api-status-pill{max-width:100%!important;}
+ .v395-run-row{display:block!important;}
+ #runAllBtn.v399-running{width:100%!important;min-width:0!important;}
+ #runAllBtn.v399-running::after{display:block!important;margin:4px 0 0!important;}
+ #runAllStatus.v399-running-status{width:100%!important;margin-top:10px!important;}
+}
+</style>
+
+<style id="qa-v33100-final-fixes">
+/* QA final hardening: ultra-narrow header must never overflow. */
+header .header-api-row{max-width:100%;box-sizing:border-box;min-width:0;}
+header .api-status-pill{min-width:0;}
+@media(max-width:700px){
+  header .header-api-row{width:100%;max-width:100%;flex-wrap:wrap!important;justify-content:flex-start!important;}
+  header .api-status-pill{max-width:calc(100vw - 110px)!important;min-width:0!important;}
+}
+@media(max-width:360px){
+  header .header-api-link{padding-left:8px!important;padding-right:8px!important;font-size:10.5px!important;}
+  header .api-status-pill{max-width:calc(100vw - 100px)!important;font-size:10px!important;}
+  #mainTabs.tabs{scroll-snap-type:x proximity!important;scroll-padding-inline:12px!important;}
+  #mainTabs .tab-btn{scroll-snap-align:start!important;}
+}
+
+/* V3.3.101 QA HARDENED — Step 4/5 AI selection UI */
+.v400-ai-strip{display:block!important;background:linear-gradient(100deg,#eee7ff,#fff 56%,#f6f1ff)!important;border:1px solid #e0d8f5!important;border-radius:22px!important;padding:22px 24px!important;box-sizing:border-box!important;}
+.v400-ai-copy{display:flex!important;align-items:center!important;gap:16px!important;margin-bottom:18px!important;}
+.v400-step-icon{width:58px!important;height:58px!important;flex:0 0 58px!important;font-size:30px!important;}
+.v400-ai-selector{width:100%!important;min-width:0!important;}
+.v400-selector-title{display:inline-flex;align-items:center;gap:4px;border:1px solid #bca3f2;background:#fff;color:#5c36c7;border-radius:12px;padding:9px 16px;font-weight:900;margin-bottom:12px;}
+.v400-provider-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+.v400-provider-option{min-width:0;min-height:46px;border:1px solid #ddd5f0;background:#fff;color:#514a67;border-radius:12px;padding:10px 14px;font:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:.18s ease;box-sizing:border-box;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.v400-provider-option:hover{border-color:#9877e8;transform:translateY(-1px);box-shadow:0 5px 14px rgba(70,40,150,.09);}
+.v400-provider-option.active{background:linear-gradient(90deg,#6d45d9,#5226bc);border-color:#6d45d9;color:#fff;box-shadow:0 8px 18px rgba(82,38,188,.22);}
+.v400-inline-config{margin-top:12px;padding:14px 16px;border:1px solid #d7c8f3;border-radius:14px;background:rgba(255,255,255,.92);}
+.v400-inline-config-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;color:#322061;}
+.v400-inline-config-head span{font-size:12px;color:#766d89;}
+.v400-inline-fields{display:grid;grid-template-columns:1.4fr 1fr auto;gap:10px;align-items:end;}
+.v400-inline-fields label{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.v400-inline-fields label span{font-size:12px;font-weight:800;color:#5c5570;}
+.v400-inline-fields input{width:100%;height:42px;box-sizing:border-box;border:1px solid #d9d0eb;border-radius:10px;padding:0 11px;background:#fff;color:#302b46;}
+.v400-save-btn{height:42px;border:0;border-radius:10px;padding:0 16px;background:linear-gradient(90deg,#6d45d9,#5226bc);color:#fff;font-weight:900;cursor:pointer;white-space:nowrap;}
+.v400-inline-actions{display:flex;align-items:center;gap:10px;margin-top:8px;font-size:11px;color:#8a8396;}
+.v400-text-btn{border:0;background:none;padding:0;color:#6541c7;font-weight:800;cursor:pointer;}
+.v400-step5-row{background:linear-gradient(100deg,#eee7ff,#fff 56%,#f6f1ff)!important;border:1px solid #e0d8f5!important;border-radius:18px!important;padding:10px 14px!important;box-sizing:border-box!important;min-height:76px!important;margin-top:14px!important;}
+.v400-step5-badge{width:54px;height:54px;flex:0 0 54px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#4d2cc7,#6e43e8);color:#fff;font-size:27px;font-weight:900;box-shadow:0 7px 16px rgba(70,40,150,.2);}
+.v400-step5-btn{margin:0!important;min-height:52px!important;font-weight:900!important;white-space:nowrap!important;}
+@media(max-width:900px){.v400-provider-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.v400-inline-fields{grid-template-columns:1fr 1fr;}.v400-save-btn{width:100%;}.v400-step5-row{align-items:stretch!important;}.v400-step5-btn{flex:1;white-space:normal!important;}}
+@media(max-width:560px){.v400-ai-strip{padding:16px!important;}.v400-ai-copy{align-items:flex-start!important;}.v400-step-icon{width:50px!important;height:50px!important;flex-basis:50px!important;font-size:25px!important;}.v400-ai-copy h3{font-size:18px!important;}.v400-provider-grid{grid-template-columns:1fr 1fr;gap:8px;}.v400-provider-option{font-size:12px;padding:9px 10px;}.v400-inline-fields{grid-template-columns:1fr;}.v400-step5-row{display:grid!important;grid-template-columns:48px 1fr!important;gap:9px!important;}.v400-step5-badge{width:48px;height:48px;flex-basis:48px;font-size:23px;}.v400-step5-btn{grid-column:2;width:100%!important;}.v400-step5-row .status-line{grid-column:1/-1;}.v400-inline-config-head{align-items:flex-start;flex-direction:column;gap:3px;}}
+@media(max-width:340px){.v400-provider-grid{grid-template-columns:1fr;}.v400-ai-copy p{font-size:11px!important;}.v400-selector-title{font-size:12px;}.v400-step5-btn{font-size:13px!important;}}
+</style>
+
+<style id="v401-world-class-stepper">
+/* V3.3.101｜企業級 STEP 導覽視覺升級
+   僅調整視覺，不修改任何既有步驟文字／功能／data-tab。 */
+#mainTabs.tabs{
+  position:relative!important;
+  display:flex!important;
+  align-items:stretch!important;
+  justify-content:space-between!important;
+  gap:8px!important;
+  margin:0 0 42px!important;
+  padding:16px 16px 18px!important;
+  min-height:142px!important;
+  box-sizing:border-box!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.98),rgba(249,247,255,.96))!important;
+  border:1px solid rgba(104,78,191,.16)!important;
+  border-radius:24px!important;
+  box-shadow:0 16px 38px rgba(55,39,117,.10), inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+#mainTabs.tabs::after{
+  content:""!important;
+  position:absolute!important;
+  left:7%!important; right:7%!important; top:51px!important;
+  height:1px!important;
+  background:linear-gradient(90deg,transparent,#d9d2ef 8%,#cbc2e8 50%,#d9d2ef 92%,transparent)!important;
+  z-index:0!important;
+  pointer-events:none!important;
+}
+#mainTabs .v399-step-line{display:none!important;}
+#mainTabs .tab-btn{
+  position:relative!important;
+  z-index:1!important;
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:106px!important;
+  height:auto!important;
+  padding:10px 8px 8px!important;
+  margin:0!important;
+  border:1px solid transparent!important;
+  border-radius:18px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:9px!important;
+  transition:transform .18s ease,background .18s ease,box-shadow .18s ease,border-color .18s ease!important;
+  overflow:visible!important;
+}
+#mainTabs .tab-btn:not(.active):hover{
+  background:rgba(247,244,255,.86)!important;
+  border-color:rgba(105,78,191,.10)!important;
+  transform:translateY(-1px)!important;
+  box-shadow:0 8px 20px rgba(60,42,130,.06)!important;
+}
+#mainTabs .step-num{
+  position:relative!important;
+  z-index:4!important;
+  flex:0 0 48px!important;
+  width:48px!important;
+  height:48px!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:16px!important;
+  border:1px solid #d8d1ea!important;
+  background:rgba(255,255,255,.98)!important;
+  color:#4d3da0!important;
+  font-size:13px!important;
+  font-weight:900!important;
+  letter-spacing:.04em!important;
+  box-shadow:0 0 0 5px rgba(255,255,255,.96),0 7px 18px rgba(61,43,130,.10)!important;
+}
+#mainTabs .tab-dot{right:-2px!important;top:-2px!important;}
+#mainTabs .step-label{
+  position:relative!important;
+  z-index:4!important;
+  margin:4px 0 0!important;
+  padding:4px 8px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#272044!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  line-height:1.4!important;
+  letter-spacing:.01em!important;
+  white-space:nowrap!important;
+}
+#mainTabs .step-meta{
+  position:relative!important;
+  z-index:4!important;
+  margin:0!important;
+  min-height:14px!important;
+  padding:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#8a829f!important;
+}
+/* Active：高階藍紫企業品牌面板，保留原有文字 */
+#mainTabs .tab-btn.active{
+  border:1px solid rgba(104,73,214,.32)!important;
+  background:linear-gradient(135deg,#eaf6ff 0%,#6676ee 46%,#7132d2 100%)!important;
+  box-shadow:0 14px 30px rgba(77,52,180,.22),inset 0 1px 0 rgba(255,255,255,.35)!important;
+  transform:translateY(-1px)!important;
+  overflow:visible!important;
+}
+#mainTabs .tab-btn.active::after{
+  content:""!important;
+  position:absolute!important;
+  right:-17px!important;
+  top:50%!important;
+  width:34px!important;
+  height:34px!important;
+  transform:translateY(-50%) rotate(45deg)!important;
+  background:#7132d2!important;
+  border-top:1px solid rgba(104,73,214,.32)!important;
+  border-right:1px solid rgba(104,73,214,.32)!important;
+  z-index:0!important;
+}
+#mainTabs .tab-btn.active .step-num{
+  border-color:rgba(255,255,255,.72)!important;
+  background:rgba(255,255,255,.16)!important;
+  color:#fff!important;
+  box-shadow:0 0 0 5px rgba(255,255,255,.12),0 8px 18px rgba(38,24,104,.16)!important;
+}
+#mainTabs .tab-btn.active .step-label{color:#fff!important;text-shadow:0 1px 2px rgba(33,18,91,.18)!important;}
+#mainTabs .tab-btn.active .step-meta{color:rgba(255,255,255,.84)!important;}
+/* 每一步的色彩焦點，避免全站 UI 過度單色 */
+#mainTabs .tab-btn[data-tab="t2"] .step-num{color:#2d7d69!important;}
+#mainTabs .tab-btn[data-tab="t4"] .step-num{color:#a66a17!important;}
+#mainTabs .tab-btn[data-tab="t6"] .step-num{color:#2d6fae!important;}
+#mainTabs .tab-btn[data-tab="t7"] .step-num{color:#9b3f75!important;}
+#mainTabs .tab-btn.active .step-num{color:#fff!important;}
+@media(max-width:1150px){
+  #mainTabs.tabs{gap:5px!important;padding-left:10px!important;padding-right:10px!important;}
+  #mainTabs .step-label{font-size:12.5px!important;}
+}
+@media(max-width:850px){
+  #mainTabs.tabs{
+    display:flex!important;
+    justify-content:flex-start!important;
+    overflow-x:auto!important;
+    overflow-y:visible!important;
+    gap:8px!important;
+    padding:12px!important;
+    min-height:128px!important;
+    scrollbar-width:thin!important;
+  }
+  #mainTabs.tabs::after{left:70px!important;right:70px!important;}
+  #mainTabs .tab-btn{flex:0 0 150px!important;width:150px!important;min-height:100px!important;}
+}
+@media(max-width:520px){
+  #mainTabs .tab-btn{flex-basis:142px!important;width:142px!important;}
+  #mainTabs .step-label{font-size:12px!important;}
+}
+</style>
+
+
+<style id="v401-independent-tools-ui">
+/* V3.3.101 / V4.01：五大 AI 功能獨立產生 UI
+   保留既有文字與功能邏輯；僅調整操作入口與視覺層級。 */
+.v401-guidance{
+  display:flex;align-items:center;gap:16px;margin:16px 0 14px;padding:14px 18px;
+  border:1px solid rgba(108,82,206,.14);border-radius:16px;
+  background:linear-gradient(135deg,rgba(248,246,255,.96),rgba(255,255,255,.98));
+  box-shadow:0 8px 24px rgba(67,49,145,.06);
+}
+.v401-guidance-icon{width:34px;height:34px;flex:0 0 34px;border-radius:11px;display:grid;place-items:center;
+  color:#fff;font-weight:800;background:linear-gradient(135deg,#5f4ae8,#7b36d5);box-shadow:0 6px 14px rgba(91,65,210,.22);}
+.v401-guidance-copy{display:flex;flex-direction:column;gap:3px;min-width:0;}
+.v401-guidance-copy strong{font-size:14px;color:#30275e;letter-spacing:.01em;}
+.v401-guidance-copy span{font-size:12px;color:#77718b;line-height:1.55;}
+.v401-guidance-path{margin-left:auto;display:flex;align-items:center;gap:7px;white-space:nowrap;color:#6659a8;font-size:11px;font-weight:800;}
+.v401-guidance-path span{display:grid;place-items:center;min-width:24px;height:24px;padding:0 5px;border-radius:8px;background:#f1edff;border:1px solid #ded6f7;}
+.v401-guidance-path i{font-style:normal;color:#aaa1cf;}
+
+#mainTabs.v401-independent-tabs, #mainTabs.tabs{
+  overflow:visible;
+}
+#mainTabs .tab-btn{
+  min-height:146px!important;padding:14px 10px 12px!important;
+  justify-content:flex-start!important;gap:6px!important;
+  border-radius:18px!important;
+  border:1px solid #e8e2f5!important;
+  background:rgba(255,255,255,.94)!important;
+  box-shadow:0 8px 22px rgba(63,44,137,.06)!important;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease;
+}
+#mainTabs .tab-btn:hover{transform:translateY(-2px)!important;border-color:#cfc1f4!important;box-shadow:0 12px 28px rgba(74,51,155,.11)!important;}
+#mainTabs .tab-btn.active{
+  background:linear-gradient(145deg,#f8f5ff 0%,#eee8ff 62%,#e9e0ff 100%)!important;
+  border-color:#a994f1!important;
+  box-shadow:0 12px 30px rgba(88,58,195,.16)!important;
+}
+#mainTabs .step-num{width:48px!important;height:48px!important;border-radius:15px!important;margin-top:0!important;}
+#mainTabs .step-label{font-size:14px!important;margin-top:3px!important;box-shadow:none!important;background:transparent!important;padding:0!important;}
+#mainTabs .step-meta{font-size:10px!important;min-height:16px!important;box-shadow:none!important;background:transparent!important;padding:0!important;}
+.v401-step-action{
+  display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:0 14px;margin-top:5px;
+  border-radius:10px;border:1px solid #c9bcf6;
+  background:linear-gradient(135deg,#5d48d9,#7130d2);color:#fff!important;
+  font-size:12px;font-weight:800;letter-spacing:.01em;
+  box-shadow:0 6px 14px rgba(91,55,205,.18);
+  white-space:nowrap;transition:filter .18s ease,transform .18s ease,opacity .18s ease;
+}
+#mainTabs .tab-btn:hover .v401-step-action{filter:brightness(1.05);transform:translateY(-1px);}
+#mainTabs .tab-btn[data-tab="t2"] .v401-step-action{background:linear-gradient(135deg,#258f78,#187b68);border-color:#9dd8ca;}
+#mainTabs .tab-btn[data-tab="t4"] .v401-step-action{background:linear-gradient(135deg,#d28a12,#b96c08);border-color:#efd09b;}
+#mainTabs .tab-btn[data-tab="t6"] .v401-step-action{background:linear-gradient(135deg,#2d7fc9,#2862ad);border-color:#afd1ef;}
+#mainTabs .tab-btn[data-tab="t7"] .v401-step-action{background:linear-gradient(135deg,#b03b7e,#7f2fa4);border-color:#e0b2d0;}
+
+/* V4.02 UI FIX: selected function card keeps white text on a dark background. */
+#mainTabs .tab-btn.active{
+  background:linear-gradient(145deg,#27233a 0%,#191726 100%)!important;
+  border-color:#514a70!important;
+  box-shadow:0 12px 30px rgba(25,23,38,.24)!important;
+  color:#fff!important;
+}
+#mainTabs .tab-btn.active .step-num{
+  background:#332d4b!important;
+  border-color:#756a9d!important;
+  color:#fff!important;
+  box-shadow:0 4px 12px rgba(0,0,0,.22)!important;
+}
+#mainTabs .tab-btn.active .step-label,
+#mainTabs .tab-btn.active .step-meta{
+  color:#fff!important;
+  background:transparent!important;
+}
+#mainTabs .tab-btn.active .step-meta{opacity:.82!important;}
+#mainTabs .tab-btn.active .v401-step-action{
+  color:#fff!important;
+  border-color:rgba(255,255,255,.34)!important;
+  box-shadow:0 6px 14px rgba(0,0,0,.24)!important;
+}
+.v401-step-action.is-disabled{opacity:.42;filter:grayscale(.5);box-shadow:none;cursor:not-allowed;}
+@media(max-width:850px){
+  .v401-guidance{align-items:flex-start;flex-wrap:wrap;}
+  .v401-guidance-path{width:100%;margin-left:50px;}
+  #mainTabs .tab-btn{min-height:142px!important;}
+}
+</style>
+
 </head>
 <body>
 <div id="authGate">
@@ -921,9 +1893,17 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
   <header>
     <div>
       <div class="eyebrow">求職前，先看懂這份職缺</div>
-      <h1>職透<span class="version-badge">V3.3.64</span></h1>
+      <h1>職透<span class="version-badge">V3.3.100</span></h1>
     </div>
     <div class="header-right">
+      <nav class="v397-top-nav" aria-label="主要功能">
+        <button type="button" class="v397-nav-brand">♛ 典藏澄思 <span>V3.3.100</span></button>
+        <button type="button" data-v397-tab="t1">▣ 履歷分析</button>
+        <button type="button" data-v397-tab="t2">✥ 職缺分析</button>
+        <button type="button" data-v397-tab="t4">◉ 面試準備</button>
+        <button type="button" data-v397-tab="t6">▤ 履歷優化</button>
+        <button type="button" data-v397-tab="t7">▣ 客製履歷</button>
+      </nav>
       <div class="header-api-row">
         <span class="user-status-pill" id="userStatusPill"></span>
         <button class="header-api-link" id="apiSettingsBtn" type="button" onclick="openApiModal()">🔑 API Key 設定</button>
@@ -934,41 +1914,44 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
     </div>
   </header>
 
-  <!-- global resume upload -->
-  <div class="panel">
-    <div class="upload-row">
-      <div class="upload-left-col">
-        <div class="field-label"><span>STEP 1・履歷 PDF／Word（所有工具共用一次上傳）</span><span id="pdfStatus">尚未上傳</span></div>
-        <div class="dropzone" id="dropzone">
-          <span class="icon">📎</span>
-          <div class="dz-title">點擊選擇或拖曳履歷到此處</div>
-          <div class="dz-sub">支援 .pdf 或 .docx，內容只在瀏覽器內處理，不會被儲存到伺服器</div>
-        </div>
-        <input type="file" id="fileInput" accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx">
-        <div class="file-chip" id="fileChip" style="display:none;">
-          <span id="fileName"></span>
-          <button id="removeFile" type="button">移除</button>
-        </div>
-        <div class="pdf-preview-box" id="pdfPreviewBox" style="display:none;"></div>
-        <button class="pdf-preview-toggle" id="pdfPreviewToggleBtn" type="button" style="display:none;">顯示完整擷取文字</button>
-      </div>
-      <div>
-        <div class="field-label"><span>STEP 2・職務類型（影響語氣與重點）</span></div>
-        <select id="jobType">
-          <option value="技術研發">技術研發</option>
-          <option value="業務/客戶">業務/客戶</option>
-          <option value="行銷">行銷</option>
-          <option value="管理/主管">管理/主管</option>
-          <option value="新鮮人/實習">新鮮人/實習</option>
-          <option value="其他/通用">其他/通用</option>
-        </select>
-        <p style="font-size:12.5px;color:var(--ink-soft);line-height:1.7;margin-top:10px;">
-          技術職強調解決問題與成果指標；業務職強調數字與客戶影響；管理職強調團隊與決策成果；新鮮人模式放寬完全對應的門檻，改強調學習力，但仍保守誠實。
-        </p>
+  <!-- V3.3.100｜A 典藏澄思：依確認版面重排，功能 ID 保持不變 -->
+  <section class="v398-hero-card" aria-label="職透 AI 履歷智能助手介紹">
+  <div class="v398-hero-copy">
+    <div class="v397-kicker">LUCIDMIND AI STUDIO</div>
+    <h2>歡迎使用 職透 AI 履歷智能助手</h2>
+    <p>讓 AI 協助你打造更具競爭力的履歷，找到理想的工作機會！</p>
+    <div class="v398-feature-row"><span>▣ 履歷分析</span><span>✥ 職缺匹配</span><span>♙ 面試準備</span><span>▤ 客製履歷</span><span>◈ AI 智能優化</span></div>
+  </div>
+</section>
 
-        <div class="shared-jd-block">
-          <div class="field-label"><span>STEP 3・職缺說明（媒合／健診／模擬面試 共用一次輸入）</span><span id="jdCountShared">0 字</span></div>
-          <textarea id="sharedJobDesc" placeholder="貼上職缺全文，包含職稱、職責與條件要求⋯下方所有工具都會直接使用這份說明，不需要在每個頁籤重複貼上">【前端工程師】
+<section class="v398-input-grid" aria-label="履歷與職缺輸入">
+  <div class="v397-card v398-upload-card">
+    <div class="v397-card-title"><b>1</b><span>上傳履歷</span><span class="v398-title-note">所有工具共用一次上傳</span></div>
+    <div class="v397-help">支援 PDF、DOC、DOCX 格式（最大 10MB）</div>
+    <div class="dropzone v397-dropzone" id="dropzone">
+      <span class="icon">☁</span><div class="dz-title">點擊上傳或拖曳檔案</div><div class="dz-sub">支援 PDF、DOC、DOCX（最大 10MB）</div>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf,.pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.docx">
+    <div class="file-chip" id="fileChip" style="display:none;"><span id="fileName"></span><button id="removeFile" type="button">移除</button></div>
+    <div class="pdf-preview-box" id="pdfPreviewBox" style="display:none;"></div>
+    <button class="pdf-preview-toggle" id="pdfPreviewToggleBtn" type="button" style="display:none;">查看詳細內容</button>
+    <div class="v397-status"><span id="pdfStatus">尚未上傳</span></div>
+  </div>
+
+  <div class="v397-card v398-job-card">
+    <div class="v398-job-grid">
+      <div class="v398-job-type">
+        <div class="v397-card-title"><b>2</b><span>輸入職務類型</span></div>
+        <div class="v397-help">請選擇職務類型或直接輸入</div>
+        <select id="jobType">
+          <option value="技術研發">技術研發</option><option value="業務/客戶">業務/客戶</option><option value="行銷">行銷</option><option value="管理/主管">管理/主管</option><option value="新鮮人/實習">新鮮人/實習</option><option value="其他/通用">其他/通用</option>
+        </select>
+        <div class="v397-role-note">例如：軟體工程師、行銷專員、產品經理⋯</div>
+      </div>
+      <div class="v398-job-desc">
+        <div class="v397-card-title"><b>3</b><span>職缺說明</span><span id="jdCountShared">0/5000</span></div>
+        <div class="v397-help">請輸入職缺描述或需求條件</div>
+        <textarea id="sharedJobDesc" placeholder="請輸入職缺說明⋯">【前端工程師】
 
 工作內容：
 1. 負責公司產品網站的前端頁面開發與維護
@@ -994,23 +1977,57 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
 工作地點：台北市
 上班時間：09:00~18:00（週休二日）
 學歷要求：大學以上（不限科系）</textarea>
-        </div>
       </div>
     </div>
+  </div>
+</section>
 
-    <div class="cta-row" style="margin-top:var(--space-3);">
-      <button class="primary" id="runAllBtn" disabled>一鍵產生履歷分析（媒合／健診／模擬面試）</button>
-      <span class="status-line" id="runAllStatus"></span>
+  <section class="v397-ai-strip v400-ai-strip" id="aiModelSection">
+    <div class="v397-ai-copy v400-ai-copy">
+      <div class="v397-ai-icon v400-step-icon">4</div>
+      <div><h3>AI 智能分析・精準匹配</h3><p>透過履歷內容與職缺需求的深度分析，提供專業建議與優化方案，讓你的履歷更吸引企業目光。</p></div>
     </div>
+    <div class="v400-ai-selector">
+      <div class="v400-selector-title">✦　選擇 AI 模型</div>
+      <div class="v400-provider-grid" id="inlineProviderGrid" role="radiogroup" aria-label="選擇 AI 模型">
+        <button type="button" class="v400-provider-option" data-provider="claude" role="radio" aria-checked="false" onclick="selectInlineProvider('claude')">◉　Claude</button>
+        <button type="button" class="v400-provider-option" data-provider="gemini" role="radio" aria-checked="false" onclick="selectInlineProvider('gemini')">✦　Gemini</button>
+        <button type="button" class="v400-provider-option" data-provider="chatgpt" role="radio" aria-checked="false" onclick="selectInlineProvider('chatgpt')">◎　OpenAI</button>
+        <button type="button" class="v400-provider-option" data-provider="agnes" role="radio" aria-checked="false" onclick="selectInlineProvider('agnes')">◈　Agnes</button>
+        <button type="button" class="v400-provider-option" data-provider="nvidia" role="radio" aria-checked="false" onclick="selectInlineProvider('nvidia')">▣　NVIDIA NIM</button>
+        <button type="button" class="v400-provider-option" data-provider="groq" role="radio" aria-checked="false" onclick="selectInlineProvider('groq')">◉　GroqCloud</button>
+        <button type="button" class="v400-provider-option" data-provider="openrouter" role="radio" aria-checked="false" onclick="selectInlineProvider('openrouter')">◆　OpenRouter</button>
+        <button type="button" class="v400-provider-option" data-provider="mistral" role="radio" aria-checked="false" onclick="selectInlineProvider('mistral')">▰　Mistral AI</button>
+      </div>
+      <div class="v400-inline-config" id="inlineAiConfig" hidden>
+        <div class="v400-inline-config-head"><strong id="inlineAiTitle">已選擇 AI</strong><span id="inlineAiStatus">請輸入 API Key</span></div>
+        <div class="v400-inline-fields">
+          <label><span>API Key</span><input id="inlineApiKey" type="password" autocomplete="off" placeholder="請貼上 API Key"></label>
+          <label><span>Model ID</span><input id="inlineApiModel" type="text" placeholder="Model ID"></label>
+          <button type="button" class="v400-save-btn" onclick="saveInlineAiConfig()">✓ 儲存並啟用</button>
+        </div>
+        <div class="v400-inline-actions"><button type="button" class="v400-text-btn" onclick="openApiModal()">開啟完整 API 設定</button><span>Key 僅暫存於本次瀏覽器分頁 sessionStorage。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="v401-guidance" role="note" aria-label="功能操作說明">
+    <div class="v401-guidance-icon">✦</div>
+    <div class="v401-guidance-copy">
+      <strong>五項功能可任選，點擊「立即生成」即可開始</strong>
+      <span>可依 01 → 05 逐步完成，也可以直接選擇你現在需要的功能；每項功能獨立產生結果。</span>
+    </div>
+    <div class="v401-guidance-path"><span>01</span><i>→</i><span>02</span><i>→</i><span>03</span><i>→</i><span>04</span><i>→</i><span>05</span></div>
   </div>
 
   <!-- tabs -->
   <nav class="tabs" id="mainTabs">
-    <button class="tab-btn active" data-tab="t1"><span class="step-num">01<span class="tab-dot" id="dot1"></span></span><span class="step-label">🎯 履歷媒合</span><span class="step-meta" id="stepMeta1"></span></button>
-    <button class="tab-btn" data-tab="t2"><span class="step-num">02<span class="tab-dot" id="dot2"></span></span><span class="step-label">🩺 履歷健診</span><span class="step-meta" id="stepMeta2"></span></button>
-    <button class="tab-btn" data-tab="t4"><span class="step-num">03<span class="tab-dot" id="dot4"></span></span><span class="step-label">🎤 模擬面試</span><span class="step-meta" id="stepMeta4"></span></button>
-    <button class="tab-btn" data-tab="t6" title="需在此頁籤單獨點擊產生，內容較長不包含在「一鍵產生」裡"><span class="step-num">04<span class="tab-dot" id="dot6"></span></span><span class="step-label">📄 客製履歷</span><span class="step-meta" id="stepMeta6"></span></button>
-    <button class="tab-btn" data-tab="t7" title="需在此頁籤單獨點擊產生，內容較長不包含在「一鍵產生」裡"><span class="step-num">05<span class="tab-dot" id="dot7"></span></span><span class="step-label">📊 提案簡報</span><span class="step-meta" id="stepMeta7"></span></button>
+    <span class="v399-step-line" aria-hidden="true"></span>
+    <button class="tab-btn active" data-tab="t1" data-generate-id="generateBtn1" title="查看履歷媒合；點擊卡片上的「立即生成」即可執行"><span class="step-num">01<span class="tab-dot" id="dot1"></span></span><span class="step-label">🎯 履歷媒合</span><span class="step-meta" id="stepMeta1"></span><span class="v401-step-action">✨ 立即生成</span></button>
+    <button class="tab-btn" data-tab="t2" data-generate-id="generateBtn2" title="查看履歷健診；點擊卡片上的「立即生成」即可執行"><span class="step-num">02<span class="tab-dot" id="dot2"></span></span><span class="step-label">🩺 履歷健診</span><span class="step-meta" id="stepMeta2"></span><span class="v401-step-action">✨ 立即生成</span></button>
+    <button class="tab-btn" data-tab="t4" data-generate-id="generateBtn4" title="查看模擬面試；點擊卡片上的「立即生成」即可執行"><span class="step-num">03<span class="tab-dot" id="dot4"></span></span><span class="step-label">🎤 模擬面試</span><span class="step-meta" id="stepMeta4"></span><span class="v401-step-action">✨ 立即生成</span></button>
+    <button class="tab-btn" data-tab="t6" data-generate-id="generateBtn6" title="查看客製履歷；點擊卡片上的「立即生成」即可執行"><span class="step-num">04<span class="tab-dot" id="dot6"></span></span><span class="step-label">📄 客製履歷</span><span class="step-meta" id="stepMeta6"></span><span class="v401-step-action">✨ 立即生成</span></button>
+    <button class="tab-btn" data-tab="t7" data-generate-id="generateBtn7" title="查看提案簡報；點擊卡片上的「立即生成」即可執行"><span class="step-num">05<span class="tab-dot" id="dot7"></span></span><span class="step-label">📊 提案簡報</span><span class="step-meta" id="stepMeta7"></span><span class="v401-step-action">✨ 立即生成</span></button>
   </nav>
 
   <!-- TAB 1: 履歷媒合 -->
@@ -1078,7 +2095,7 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
   <div class="tab-panel" id="t6">
     <div class="panel tool-panel">
       <p class="tool-note">會使用上方填寫的履歷與職缺說明，由 AI 扮演十年資歷的跨國企業人資主管與履歷撰寫專家，依 STAR 原則與量化數據導向，重新編排一份針對此職缺客製化的世界級標準新履歷（精煉重點、強勢動詞、對齊職缺關鍵字），完成後可下載 PDF 提供給該求職公司。AI 只會調整表達方式與重點順序，不會捏造原始履歷中沒有的經歷或數字；若某項成就原始履歷缺少具體數字，AI 會標示「請補充數據」的提示，由你自行填入真實成果。</p>
-      <p class="standalone-note">⚠️ 需單獨生成：因產生完整新履歷需花費較多 tokens，不包含在上方「一鍵產生履歷分析」中，請在此頁籤單獨點擊產生。</p>
+      <p class="standalone-note">💡 此功能可獨立使用；選好版型後，點擊「立即生成」即可產生客製履歷。</p>
 
       <div id="resumeThemeStep1">
         <label class="field-label" style="margin-top:16px;">STEP 1・挑選履歷版型（世界級企業常見排版風格，產生後仍可隨時切換，不需重新產生）</label>
@@ -1100,7 +2117,7 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
   <div class="tab-panel" id="t7">
     <div class="panel tool-panel">
       <p class="tool-note">會使用上方填寫的履歷與職缺說明，依照「面試提案簡報」黃金架構——破題與個人亮點、現況痛點洞察、你的提案與 30-60-90 天計畫、能力佐證、結語 Q&A——自動產生一份 8~10 頁的簡報，可用於面試或主動投遞時附上。每頁文字力求精簡（少即是多，重點留給你口頭表達），完成後可下載 PDF。</p>
-      <p class="standalone-note">⚠️ 需單獨生成：因產生完整簡報需花費較多 tokens，不包含在上方「一鍵產生履歷分析」中，請在此頁籤單獨點擊產生。</p>
+      <p class="standalone-note">💡 此功能可獨立使用；完成版型與補充資訊後，點擊「立即生成」即可產生提案簡報。</p>
 
       <div id="deckThemeStep1">
         <label class="field-label" style="margin-top:16px;">STEP 1・挑選簡報版型（世界級企業簡報常見風格，產生後仍可隨時切換，不需重新產生）</label>
@@ -1123,7 +2140,7 @@ footer{padding-top:24px;border-top:1px solid rgba(79,70,184,.12);}
 
   <footer>
     <div class="footer-main-line">© 2026 <a class="footer-brand-link" href="https://project0983487908.netlify.app" target="_blank" rel="noopener noreferrer" aria-label="開啟澄思 AI Studio">澄思 AI Studio</a> · LUCIDMIND AI STUDIO · 重要的決定，不必一個人想。</div>
-    <div class="footer-contact-line">聯絡方式　信箱：<a class="footer-contact-link" href="https://mail.google.com/mail/?view=cm&fs=1&to=project0983487908@gmail.com&su=%E5%85%AC%E9%91%91%E5%BB%BA%E8%AD%B0%E5%92%8C%E9%9C%80%E6%B1%82" target="_blank" rel="noopener noreferrer" aria-label="使用 Gmail 寄送公鑑建議和需求">project0983487908@gmail.com</a>　 Line：<button type="button" class="footer-contact-link" style="border:0;background:none;padding:0;font:inherit;" onclick="openLineQrModal()" aria-label="開啟 LINE 加好友 QR Code">felix_line</button></div>
+    <div class="footer-contact-line">聯絡方式　信箱：<a class="footer-contact-link" href="https://mail.google.com/mail/?view=cm&fs=1&to=project0983487908@gmail.com&su=%E8%81%B7%E9%80%8F-%E5%BB%BA%E8%AD%B0%E8%88%87%E9%9C%80%E6%B1%82" target="_blank" rel="noopener noreferrer" aria-label="使用 Gmail 寄送職透-建議與需求">project0983487908@gmail.com</a>　 Line：<button type="button" class="footer-contact-link" style="border:0;background:none;padding:0;font:inherit;" onclick="openLineQrModal()" aria-label="開啟 LINE 加好友 QR Code">felix_line</button></div>
     <div class="debug-toggle-row footer-debug-toggle">
       <button class="ghost" id="debugToggleBtn" type="button">除錯模式</button>
     </div>
@@ -1411,5 +2428,14 @@ document.addEventListener('click',function(e){
 <script src="js/tab-tailored-resume.js"></script>
 <script src="js/tab-deck.js"></script>
 <script src="js/init.js"></script>
+<script src="js/v399-ui-fixes.js"></script>
+
+<script>
+document.addEventListener('click',function(e){
+  const b=e.target.closest('[data-v397-tab]'); if(!b) return;
+  const id=b.getAttribute('data-v397-tab'); const tab=document.querySelector('.tab-btn[data-tab="'+id+'"]');
+  if(tab){ tab.click(); document.getElementById('mainTabs')?.scrollIntoView({behavior:'smooth',block:'center'}); }
+});
+</script>
 </body>
 </html>

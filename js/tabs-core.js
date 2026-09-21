@@ -31,14 +31,40 @@ function updateStepMeta(tabNum, meta){
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', (event) => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
     refreshStaleIndicators();
+
+    /* V4.01：五大功能各自獨立產生。只有點擊卡片上的「立即生成」
+       才會真正呼叫 AI；點擊卡片其他區域只負責切換頁籤，不會誤觸發生成。 */
+    const action = event.target.closest('.v401-step-action');
+    const generateId = btn.dataset.generateId;
+    if (action && generateId){
+      const generateBtn = document.getElementById(generateId);
+      if (generateBtn && !generateBtn.disabled){
+        generateBtn.click();
+      }
+    }
   });
 });
+
+function syncIndependentStepActions(){
+  document.querySelectorAll('.tab-btn[data-generate-id]').forEach(tab => {
+    const action = tab.querySelector('.v401-step-action');
+    const generateBtn = document.getElementById(tab.dataset.generateId);
+    if (!action || !generateBtn) return;
+    const disabled = !!generateBtn.disabled || activeRunCount > 0;
+    action.classList.toggle('is-disabled', disabled);
+    action.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+    action.title = disabled
+      ? (generateBtn.title || '請先完成上方履歷與職缺資料')
+      : '點擊立即生成此功能';
+  });
+}
+
 
 /* v3.3.47：「產生」類按鈕在履歷或職缺說明還沒填完整前會是 disabled 狀態，但原本完全
    沒有任何提示告訴使用者「為什麼按不下去、要先做什麼」——對使用者來說，按鈕看起來
@@ -47,16 +73,16 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 function updateAllButtonStates(){
   const ready = resumeText.trim().length > 10 && sharedJobDesc.value.trim().length > 10;
   const hint = ready ? '' : '請先在上方上傳履歷（PDF／Word）並貼上至少 10 個字的職缺說明';
-  ['generateBtn1', 'generateBtn2', 'generateBtn4', 'generateBtn6', 'generateBtn7', 'runAllBtn'].forEach((id) => {
+  ['generateBtn1', 'generateBtn2', 'generateBtn4', 'generateBtn6', 'generateBtn7'].forEach((id) => {
     const btn = document.getElementById(id);
     if (!btn) return;
     btn.disabled = !ready;
     btn.title = hint;
   });
   updateReverseButtonState();
+  if (typeof syncIndependentStepActions === 'function') syncIndependentStepActions();
 }
 
-document.getElementById('runAllBtn').addEventListener('click', runAll);
 
 /* =========================================================
    v3.0.99：「一鍵產生全部分析」改為依序（而非同時）執行三項分析，
@@ -75,79 +101,7 @@ document.getElementById('runAllBtn').addEventListener('click', runAll);
    個別函式內部也各自呼叫這對函式，因此巢狀呼叫時只有最外層的 runAll
    結束才會真正解鎖，中間三個階段銜接時不會有短暫解鎖的空檔）。
 ========================================================= */
-async function runAll(){
-  const btn = document.getElementById('runAllBtn');
-  const statusLine = document.getElementById('runAllStatus');
-  if (resumeText.trim().length <= 10 || sharedJobDesc.value.trim().length <= 10){
-    statusLine.textContent = '請先上傳履歷並填寫職缺說明';
-    statusLine.classList.add('err');
-    return;
-  }
-  beginRun();
-  btn.disabled = true;
-  statusLine.classList.remove('err');
-
-  try {
-    const stages = [
-      { key: 'match', label: '媒合分析', run: runMatch },
-      { key: 'healthcheck', label: '履歷健診', run: runHealthCheck },
-      { key: 'interviewSetup', label: '模擬面試題目', run: runInterviewSetup }
-    ];
-
-    const runStartedAt = Date.now();
-    let cumulativeTokens = 0;
-    let anyEstimated = false; // 是否曾用到「概算」而非 API 實際用量，用來決定要不要顯示「約」
-    const results = {};
-    let tickTimer = null;
-
-    function fmtSec(ms){ return Math.max(0, Math.round(ms / 1000)); }
-
-    function renderProgress(stageIndex, stageStartedAt){
-      const stage = stages[stageIndex];
-      const elapsedTotal = Date.now() - runStartedAt;
-      const elapsedThisStage = Date.now() - stageStartedAt;
-      const estThisStage = estimateStageDuration(stage.key);
-      const remainThisStage = Math.max(0, estThisStage - elapsedThisStage);
-      const remainingStagesEstimate = stages.slice(stageIndex + 1).reduce((sum, s) => sum + estimateStageDuration(s.key), 0);
-      const remainMs = remainThisStage + remainingStagesEstimate;
-      statusLine.innerHTML = '<span class="spinner"></span>目前執行：' + stage.label + '（第 ' + (stageIndex + 1) + '／' + stages.length + ' 項）　已花時間 ' + fmtSec(elapsedTotal) + ' 秒　預計還需約 ' + fmtSec(remainMs) + ' 秒　目前已用 tokens ' + (anyEstimated ? '約 ' : '') + cumulativeTokens.toLocaleString();
-    }
-
-    for (let i = 0; i < stages.length; i++){
-      const stage = stages[i];
-      const stageStartedAt = Date.now();
-      if (tickTimer) clearInterval(tickTimer);
-      renderProgress(i, stageStartedAt);
-      tickTimer = setInterval(() => renderProgress(i, stageStartedAt), 1000);
-
-      const ok = await stage.run();
-
-      clearInterval(tickTimer);
-      results[stage.key] = ok;
-      const meta = rmStageStats[stage.key];
-      if (meta && meta.tokensUsed){
-        cumulativeTokens += meta.tokensUsed;
-        if (meta.tokensExact === false) anyEstimated = true;
-      }
-    }
-
-    const parts = [
-      '媒合分析' + (results.match ? '✓' : '✗'),
-      '履歷健診' + (results.healthcheck ? '✓' : '✗'),
-      '模擬面試題目' + (results.interviewSetup ? '✓' : '✗')
-    ];
-    const allOk = results.match && results.healthcheck && results.interviewSetup;
-    /* v3.3.60 修復：原本這裡會把 3 個頁籤的花費時間、tokens 全部加總成一行長文字
-       （例如「共花費 30 秒，實際使用 tokens 11,286」），使用者要自己在心裡拆解才知道
-       「到底是哪個頁籤花了多少」。現在改成每個頁籤各自在自己的頁籤下方顯示自己的花費
-       時間與 tokens（見 updateStepMeta()），這裡只保留簡短的完成度摘要，並指向上方
-       頁籤看詳情。 */
-    statusLine.textContent = (allOk ? '全部完成：' : '部分完成（失敗的可到該頁籤重試）：') + parts.join('　') + '　詳細花費時間與 tokens 請見上方各頁籤';
-    statusLine.classList.toggle('err', !allOk);
-  } finally {
-    endRun();
-  }
-}
+/* V4.01：舊版「一鍵產生全部分析」已移除；五項功能改為各自獨立執行。 */
 
 /* v3.0.99：供「一鍵產生全部分析」讀取每一階段實際用量／耗時的暫存區。
    由 runMatch／runHealthCheck／runInterviewSetup 各自寫入，runAll 依序

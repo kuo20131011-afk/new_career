@@ -23,6 +23,17 @@
    刷新過的 Token 重試一次」的機制，避免未來遇到單純的 Token 過期時還要使用者手動
    登出再登入。 ---------- */
 const ADMIN_EMAIL = 'felix670131@gmail.com';
+
+/* =======================================================================
+   V3.3.91 測試模式：暫時隱藏 Google／Netlify Identity 登入牆
+   -----------------------------------------------------------------------
+   目的：先讓開發測試直接進入主工具，不必登入 Google。
+   - 只隱藏／繞過前端登入牆，不刪除 Netlify Identity 程式碼。
+   - 要恢復正式登入，只要把下面改成 false 即可。
+   - 測試模式下不會產生 Google 登入事件，也不會顯示登入／登出按鈕。
+   - 後端需要真正身份驗證的管理 API 仍然維持原本的安全檢查。
+========================================================================= */
+const TEMP_BYPASS_LOGIN_FOR_TESTING = false;
 window.__zhitouCurrentUser = null;
 
 async function getIdentityToken(forceRefresh){
@@ -105,6 +116,15 @@ async function uploadResumeToServer(file){
     app.style.display = 'none';
     pill.innerHTML = '';
     window.__zhitouCurrentUser = null;
+  }
+
+  // V3.3.91：測試期間直接進入主工具，不開啟 Google 登入牆。
+  // Identity 相關程式碼保留，但不註冊 init/login/logout callback，避免頁面載入後又把 appRoot 隱藏。
+  if (TEMP_BYPASS_LOGIN_FOR_TESTING) {
+    gate.style.display = 'none';
+    app.style.display = 'block';
+    pill.innerHTML = '<span aria-label="測試模式">🧪 測試模式</span>';
+    return;
   }
 
   // 每一個 widget callback 都各自包一層 try/catch：單一事件處理失敗時只印出錯誤，
