@@ -1,4 +1,92 @@
-# 職透 (JobSight) V3.3.64 — 後台管理功能部署說明
+# 職透 (JobSight) V3.3.90 — GitHub / Netlify 部署修正版
+
+## V3.3.90 更新重點：修正 GitHub → Netlify 自動部署結構與設定
+
+本版以 **V3.3.89 A｜典藏澄思** 為基礎，主要處理「GitHub 已更新，但 Netlify 沒有跟著自動部署／網站仍顯示舊版」的部署問題。網站功能位置與 A 版視覺主題維持不變。
+
+### ✅ 1. 修正 ZIP / GitHub 專案根目錄結構
+V3.3.90 的 ZIP 已改成可直接解壓後把內容放進 GitHub repository 根目錄的格式，不再額外包一層 `Career-main/`。
+
+正確結構：
+
+```text
+repository/
+├── index.html
+├── netlify.toml
+├── package.json
+├── README.md
+├── assets/
+├── js/
+└── netlify/
+    ├── functions/
+    └── lib/
+```
+
+如果 GitHub 目前仍是：
+
+```text
+repository/
+└── Career-main/
+    ├── index.html
+    ├── netlify.toml
+    └── ...
+```
+
+請擇一處理：
+- 建議：把 `Career-main/` 裡面的檔案全部移到 repository 根目錄。
+- 或在 Netlify 將 **Package directory** 指向 `Career-main`。
+
+### ✅ 2. 更新 Netlify Functions 設定
+`netlify.toml` 已改為目前較清楚的 Functions directory 寫法：
+
+```toml
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+```
+
+本專案是靜態 HTML / JavaScript 網站，不需要額外 Build command。
+
+### ✅ 3. Netlify 建議部署設定
+當 GitHub repository 根目錄已直接放置 `index.html` 時：
+
+- **Base directory**：留空
+- **Package directory**：留空
+- **Build command**：留空
+- **Publish directory**：`.`
+- **Functions directory**：`netlify/functions`
+- **Production branch**：必須與實際 push 的 GitHub branch 相同，例如 `main`
+
+### ✅ 4. 已完成的程式檢查
+- 所有 `js/*.js` 已執行 JavaScript syntax check，無語法錯誤。
+- `index.html`、JS、assets 與 Netlify Functions 路徑均保留。
+- `package.json` 版本已更新為 `3.3.90`。
+- 網站 A 版「典藏澄思」視覺與既有功能位置不變。
+
+### V3.3.89 A｜典藏澄思
+- 使用紫色／金色系的典藏質感視覺。
+- 僅調整靜態視覺樣式，不改變主要功能位置與操作流程。
+- 頁尾包含「澄思 AI Studio」、「LUCIDMIND AI STUDIO」、Email 與 LINE 聯絡入口。
+
+### V3.3.88 頁尾與聯絡功能
+- 頁尾更新為：`© 2026 澄思 AI Studio · LUCIDMIND AI STUDIO · 重要的決定，不必一個人想。`
+- Email：`project0983487908@gmail.com`
+- LINE：`felix_line`
+- 點擊「澄思」可開啟澄思 AI Studio 網站。
+- Email 入口可開啟 Gmail 撰寫視窗。
+- LINE 入口可顯示加入好友 QR Code。
+
+### V3.3.87 AI API 架構更新
+- Agnes 預設模型更新為 `agnes-2.5-flash`，並可自行輸入其他模型 ID。
+- API Provider 的 Model ID、Base URL、API Key 均可編輯，不將新模型固定寫死在前端。
+- 新增 NVIDIA NIM、GroqCloud、OpenRouter、Mistral AI Studio 等 OpenAI-compatible Provider 支援。
+
+---
+
+## 舊版更新紀錄
 
 ## v3.3.64 更新重點：修復 Word 下載版型錯誤 + 新增 5 款履歷／簡報版型
 
